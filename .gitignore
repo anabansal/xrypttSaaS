@@ -15,7 +15,7 @@ yarn-error.log*
 # Environment files
 .env
 backend/.env
-frontend/.env
+frontend/.env.local
 
 # Temporary and system files
 .DS_Store
