@@ -11,6 +11,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const getSupabaseClient = (authToken) => {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+          headers: {
+              Authorization: `Bearer ${authToken}`
+          }
+      }
+  });
+};
 
 
 export const verifySupabaseConnection = async () => {

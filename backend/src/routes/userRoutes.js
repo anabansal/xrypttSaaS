@@ -1,5 +1,5 @@
 import express from 'express';
-import { supabase } from '../utils/supabase.js';
+import { getSupabaseClient } from '../utils/supabase.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { trackWalletsContinuously } from '../services/walletMonitor.js';
 
@@ -8,6 +8,8 @@ const router = express.Router();
 // 🔹 Register or Update a User
 router.post('/register', authenticate, async (req, res) => {
     const { email, wallets, checkInterval } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+    const supabase = getSupabaseClient(token);
 
     try {
         // Check if user exists
@@ -42,7 +44,7 @@ router.post('/register', authenticate, async (req, res) => {
                 .from('users')
                 .insert([
                     {
-                        id: req.user.id,        // CHANGED: Added user id to satisfy RLS policy
+                        id: req.user.id,
                         email,
                         wallets,
                         check_interval: checkInterval,
@@ -52,11 +54,10 @@ router.post('/register', authenticate, async (req, res) => {
                 .single();
         }
 
-
         if (result.error) throw result.error;
         trackWalletsContinuously(email).catch((err) =>
             console.error(`Error starting wallet tracking for ${email}:`, err)
-          );
+        );
 
         res.json(result.data);
     } catch (err) {
@@ -66,7 +67,9 @@ router.post('/register', authenticate, async (req, res) => {
 
 // 🔹 Get User Settings
 router.get('/settings', authenticate, async (req, res) => {
-    //console.log('User object:', req.user);
+    const token = req.headers.authorization?.split(' ')[1];
+    const supabase = getSupabaseClient(token);
+
     try {
         console.log('Starting settings query for email:', req.user.email);
         
@@ -77,7 +80,7 @@ router.get('/settings', authenticate, async (req, res) => {
             .limit(1)
             .maybeSingle();
             
-        console.log('Query result:', { data, error }); // Add this line
+        console.log('Query result:', { data, error });
             
         if (error) {
             console.error('Supabase query error:', error);
@@ -85,7 +88,7 @@ router.get('/settings', authenticate, async (req, res) => {
         }
 
         if (!data) {
-            console.log('No data found for email:', req.user.email); // Add this line
+            console.log('No data found for email:', req.user.email);
             return res.status(404).json({ error: 'User settings not found' });
         }
 
@@ -99,9 +102,11 @@ router.get('/settings', authenticate, async (req, res) => {
 // 🔹 Update User Settings
 router.put('/settings', authenticate, async (req, res) => {
     const { email, wallets, checkInterval } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+    const supabase = getSupabaseClient(token);
 
     try {
-         console.log('update');
+        console.log('update');
 
         const { data, error } = await supabase
             .from('users')
@@ -116,8 +121,7 @@ router.put('/settings', authenticate, async (req, res) => {
         if (error) throw error;
         trackWalletsContinuously(email).catch((err) =>
             console.error(`Error starting wallet tracking for ${email}:`, err)
-          );
-      
+        );
 
         res.json(data);
     } catch (err) {
