@@ -29,7 +29,7 @@ app.use(session({
   // CORS configuration - update to allow credentials
   app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-      ? 'your-production-domain' 
+      ? 'https://xrypttsaas-1.onrender.com' 
       : 'http://localhost:5173', // or whatever port your frontend runs on
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
