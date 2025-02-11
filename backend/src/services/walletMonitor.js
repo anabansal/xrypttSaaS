@@ -21,7 +21,7 @@ const processingState = new Map();
  */
 export async function initializeTrackingOnStartup() {
     try {
-        // Get all users with active tracking
+        // Use supabaseAdmin for server-side initialization
         const { data: activeUsers, error } = await supabaseAdmin
             .from('users')
             .select('*')
@@ -34,9 +34,9 @@ export async function initializeTrackingOnStartup() {
 
         console.log(`Initializing tracking for ${activeUsers.length} active users`);
         
-        // Start tracking for each active user
+        // Start tracking for each active user with isServerInit flag
         for (const user of activeUsers) {
-            await trackWalletsContinuously(user.email);
+            await trackWalletsContinuously(user.email, true);
         }
     } catch (error) {
         console.error('Error during tracking initialization:', error);
@@ -44,42 +44,20 @@ export async function initializeTrackingOnStartup() {
 }
 
 /**
- * Stops wallet tracking for a specific email
- */
-export async function stopWalletTracking(email) {
-    console.log(`Stopping wallet tracking for email: ${email}`);
-    
-    // Clear intervals
-    for (const [key, intervalId] of walletIntervals.entries()) {
-        if (key.startsWith(`${email}-`)) {
-            clearInterval(intervalId);
-            walletIntervals.delete(key);
-            processingState.delete(key);
-            console.log(`Cleared interval for ${key}`);
-        }
-    }
-
-    // Update tracking status in database
-    try {
-        await supabase
-            .from('users')
-            .update({ tracking_active: false })
-            .eq('email', email);
-    } catch (error) {
-        console.error(`Error updating tracking status for ${email}:`, error);
-    }
-}
-
-/**
  * Fetches user data from the database or cache
+ * @param {string} email - User's email
+ * @param {boolean} isServerInit - Whether this is server initialization
  */
-async function getUserData(email) {
+async function getUserData(email, isServerInit = false) {
     const cachedData = userCache.get(email);
     if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
         return cachedData.data;
     }
 
-    const { data, error } = await supabase
+    // Use appropriate Supabase client based on context
+    const client = isServerInit ? supabaseAdmin : supabase;
+
+    const { data, error } = await client
         .from('users')
         .select('*')
         .eq('email', email)
@@ -100,22 +78,27 @@ async function getUserData(email) {
 
 /**
  * Starts continuous tracking of wallets for a specific email
+ * @param {string} email - User's email
+ * @param {boolean} isServerInit - Whether this is server initialization
  */
-export async function trackWalletsContinuously(email) {
-    console.log(`Starting wallet tracking for email: ${email}`);
+export async function trackWalletsContinuously(email, isServerInit = false) {
+    console.log(`Starting wallet tracking for email: ${email} (Server Init: ${isServerInit})`);
 
     // Stop existing tracking before starting fresh
     userCache.delete(email);
-    await stopWalletTracking(email);
+    await stopWalletTracking(email, isServerInit);
 
     try {
-        const userData = await getUserData(email);
+        const userData = await getUserData(email, isServerInit);
         console.log(`Found user data:`, { email, walletsCount: userData.wallets.length, checkInterval: userData.check_interval });
 
         const { wallets, check_interval: checkInterval } = userData;
 
+        // Use appropriate Supabase client based on context
+        const client = isServerInit ? supabaseAdmin : supabase;
+
         // Update tracking status in database
-        await supabase
+        await client
             .from('users')
             .update({ 
                 tracking_active: true,
@@ -143,7 +126,7 @@ export async function trackWalletsContinuously(email) {
                         continue;
                     }
 
-                    await processWalletTransactions(email, walletAddress, monitorOptions, walletState);
+                    await processWalletTransactions(email, walletAddress, monitorOptions, walletState, isServerInit);
                 } catch (error) {
                     console.error(`Error processing wallet ${walletAddress}:`, error);
                 }
@@ -159,11 +142,46 @@ export async function trackWalletsContinuously(email) {
 }
 
 /**
- * Checks if a wallet address exists in the stealth_wallets table
+ * Stops wallet tracking for a specific email
+ * @param {string} email - User's email
+ * @param {boolean} isServerInit - Whether this is server initialization
  */
-async function isWalletInStealthTable(walletAddress) {
+export async function stopWalletTracking(email, isServerInit = false) {
+    console.log(`Stopping wallet tracking for email: ${email}`);
+    
+    // Clear intervals
+    for (const [key, intervalId] of walletIntervals.entries()) {
+        if (key.startsWith(`${email}-`)) {
+            clearInterval(intervalId);
+            walletIntervals.delete(key);
+            processingState.delete(key);
+            console.log(`Cleared interval for ${key}`);
+        }
+    }
+
+    // Use appropriate Supabase client based on context
+    const client = isServerInit ? supabaseAdmin : supabase;
+
+    // Update tracking status in database
     try {
-        const { data: stealthWalletData, error: stealthWalletError } = await supabase
+        await client
+            .from('users')
+            .update({ tracking_active: false })
+            .eq('email', email);
+    } catch (error) {
+        console.error(`Error updating tracking status for ${email}:`, error);
+    }
+}
+
+/**
+ * Checks if a wallet address exists in the stealth_wallets table
+ * @param {string} walletAddress - Wallet address to check
+ * @param {boolean} isServerInit - Whether this is server initialization
+ */
+async function isWalletInStealthTable(walletAddress, isServerInit = true) {
+    try {
+        const client = isServerInit ? supabaseAdmin : supabase;
+        const { data: stealthWalletData, error: stealthWalletError } = await client
             .from('stealth_wallets')
             .select('wallet_address')
             .eq('wallet_address', walletAddress)
@@ -183,10 +201,12 @@ async function isWalletInStealthTable(walletAddress) {
 /**
  * Processes transactions for a specific wallet
  */
-async function processWalletTransactions(email, walletAddress, monitorOptions, walletState) {
+async function processWalletTransactions(email, walletAddress, monitorOptions, walletState, isServerInit = false) {
+    const client = isServerInit ? supabaseAdmin : supabase;
+
     // Load last processed transaction from database if it's the first run
     if (walletState.isFirstRun) {
-        const { data: savedState } = await supabase
+        const { data: savedState } = await client
             .from('wallet_states')
             .select('last_transaction_hash')
             .eq('wallet_address', walletAddress)
@@ -244,7 +264,7 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
         }
 
         // Save the latest transaction hash to the database
-        await supabase
+        await client
             .from('wallet_states')
             .upsert({
                 wallet_address: walletAddress,
@@ -255,9 +275,7 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
     }
 }
 
-/**
- * Determines if a transaction should trigger a notification
- */
+// These functions remain unchanged as they don't interact with Supabase
 function shouldNotifyTransaction(transaction, tokenData, monitorOptions, valueInEther) {
     return (
         (monitorOptions.tokenTransfers && tokenData?.method === 'transfer') ||
@@ -266,9 +284,6 @@ function shouldNotifyTransaction(transaction, tokenData, monitorOptions, valueIn
     );
 }
 
-/**
- * Sends an email notification for new transactions
- */
 async function handleNewTransactions(transactions, email) {
     console.log(`Creating email content for ${transactions.length} transactions`);
     const emailContent = transactions
