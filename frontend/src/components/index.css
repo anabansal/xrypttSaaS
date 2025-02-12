@@ -10,7 +10,7 @@
         align-items: center;
         align-self: center;
         transform: scale(0.6);
-        margin-left: 0% !important;
+        margin-left: -7% !important;
 
     } 
     #homepageGetStarted{
@@ -67,18 +67,25 @@
     #homepageHero2Heading{
         font-size: 20px !important;
         font-weight: 500 !important;
+        margin-top: -5vh;
+
+    }
+    #homepageHero2TextBox{
+        height: 15vh !important;
+        top: -3vh !important;
     }
     #homepageHero2{
         height: 15vh !important;
     }
     #homepageHero2Image img{
-        height: 45vh !important;
+        height: 25vh !important;
     }
     #homepageUsecase{
         width: 90vw;
         margin-left: -5vw;
     }
     #homepageGreenSection{
+        height: 55vh !important;
     }
     #homepageGreenSectionHeading{
         font-size: 25px;
@@ -92,5 +99,11 @@
     }
     #homepageGreenSectionButton{
         margin-left: 10vw !important;
+    }
+    #homepageGreenFlex{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;  
+        margin-top: -7vh !important;
     }
 }

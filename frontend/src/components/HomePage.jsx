@@ -124,6 +124,7 @@ const HomePage = ({ onGetStarted }) => {
             alt=""
           />
           <div 
+            id="homepageHero2TextBox"
             style={{ 
               border: '1px solid rgba(132, 132, 132, 0.55)',
               borderRadius: '20px',
@@ -192,7 +193,7 @@ const HomePage = ({ onGetStarted }) => {
           className="bg-green-500 py-20 w-full"
         >
           <div className="max-w-6xl mx-auto px-4">
-            <div className="text-left space-y-8">
+            <div id="homepageGreenFlex" className="text-left space-y-8">
               <h2 
               id="homepageGreenSectionHeading"
                 style={{
