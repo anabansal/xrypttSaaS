@@ -28,14 +28,14 @@
         flex-direction: column;
     } 
     #homepageUsecaseHeading{
-        font-size: 15px !important;
+        font-size: 20px !important;
         order: 1;
         /* width: 120%; */
     } 
     #homepageUsecasePara{
-        font-size: 10px !important;
+        font-size: 15px !important;
         order: 2;
-        line-height: 20px;
+        line-height: 25px;
         align-self: center;
         /* width: 120%; */
     }
@@ -65,13 +65,32 @@
         margin-top: -10vh !important;
     }
     #homepageHero2Heading{
-        font-size: 30px !important;
+        font-size: 20px !important;
         font-weight: 500 !important;
     }
     #homepageHero2{
-        height: 20vh !important;
+        height: 15vh !important;
     }
     #homepageHero2Image img{
         height: 45vh !important;
+    }
+    #homepageUsecase{
+        width: 90vw;
+        margin-left: -5vw;
+    }
+    #homepageGreenSection{
+    }
+    #homepageGreenSectionHeading{
+        font-size: 25px;
+        width: 100% !important;
+        line-height: 40px !important;
+        text-align: center !important;
+        margin-left: -1vw !important;
+    }
+    #homepageGreenSectionPara{
+        font-size: 20px !important;
+    }
+    #homepageGreenSectionButton{
+        margin-left: 10vw !important;
     }
 }

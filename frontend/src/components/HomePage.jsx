@@ -142,7 +142,7 @@ const HomePage = ({ onGetStarted }) => {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 space-y-8">
+        <div id="homepageUsecase" className="max-w-6xl mx-auto px-4 space-y-8">
           <div id="homepageUsecaseBox" className="flex items-center justify-between p-8 border border-primary/10 rounded-xl">
             <div id="homepageUsecaseContent" className="w-1/2 pr-8">
               <h3 id="homepageUsecaseHeading" className="text-2xl font-bold text-primary mb-4">Wallet Tracking</h3>
@@ -181,6 +181,7 @@ const HomePage = ({ onGetStarted }) => {
         </div>
 
         <div 
+          id="homepageGreenSection"
           style={{
             backgroundColor: '#01E255',
             width: '90vw',
@@ -193,6 +194,7 @@ const HomePage = ({ onGetStarted }) => {
           <div className="max-w-6xl mx-auto px-4">
             <div className="text-left space-y-8">
               <h2 
+              id="homepageGreenSectionHeading"
                 style={{
                   width: '45vw',
                   lineHeight: '60px',
@@ -205,6 +207,7 @@ const HomePage = ({ onGetStarted }) => {
                 Transform Your Crypto Compliance Today!
               </h2>
               <p 
+                id="homepageGreenSectionPara"
                 style={{
                   marginLeft: '3vw',
                   fontFamily: 'Bebas Neue',
@@ -216,7 +219,7 @@ const HomePage = ({ onGetStarted }) => {
                 Simplify your digital asset compliance with Xryptt's cutting-edge solutions!
               </p>
 
-              <div className="mt-8">
+              <div id="homepageGreenSectionButton" className="mt-8">
                 <button 
                   style={{ borderRadius: '100px', marginLeft: '3vw' }}
                   className="bg-black text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-900 transition-colors duration-200"
