@@ -104,6 +104,6 @@
         display: flex;
         flex-direction: column;
         justify-content: center;  
-        margin-top: -10vh !important;
+        margin-top: -5vh !important;
     }
 }
