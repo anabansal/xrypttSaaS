@@ -9,12 +9,12 @@ const Footer = ({ onViewChange }) => {
           <div>
             <h3 className="text-lg font-semibold text-primary mb-4">CONTACT</h3>
             <address className="not-italic text-gray-600 space-y-2">
-              <p>3rd Floor 86-90</p>
+              {/* <p>3rd Floor 86-90</p>
               <p>Paul Street,</p>
               <p>London, England,</p>
-              <p>EC2A 4NE</p>
+              <p>EC2A 4NE</p> */}
               <div className="h-4" />
-              <p>info@walletmonitor.com</p>
+              <p>xryptt@gmail.com</p>
               <div className="h-4" />
               <div className="space-y-2">
                 <a href="#" className="block text-gray-600 hover:text-primary">X (Twitter)</a>
