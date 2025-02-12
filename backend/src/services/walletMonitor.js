@@ -210,6 +210,7 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
             .from('wallet_states')
             .select('last_transaction_hash')
             .eq('wallet_address', walletAddress)
+            .eq('user_email', email) // Now filtering by user_email as well
             .single();
         
         if (savedState?.last_transaction_hash) {
