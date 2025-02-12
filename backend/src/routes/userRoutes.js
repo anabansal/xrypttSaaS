@@ -55,7 +55,7 @@ router.post('/register', authenticate, async (req, res) => {
         }
 
         if (result.error) throw result.error;
-        trackWalletsContinuously(email).catch((err) =>
+        trackWalletsContinuously(email, client, false).catch((err) =>
             console.error(`Error starting wallet tracking for ${email}:`, err)
         );
 
@@ -119,7 +119,7 @@ router.put('/settings', authenticate, async (req, res) => {
             .select();
 
         if (error) throw error;
-        trackWalletsContinuously(email).catch((err) =>
+        trackWalletsContinuously(email, client, false).catch((err) =>
             console.error(`Error starting wallet tracking for ${email}:`, err)
         );
 
