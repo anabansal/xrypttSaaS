@@ -6,7 +6,7 @@ const AboutUsPage = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-background text-primary border-b border-primary/10 w-full">
-        <div className="max-w mx-auto px-4 py-24">
+        <div id="aboutUsHeading" className="max-w mx-auto px-4 py-24">
           <div>
             <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-center">
               About Wallet Monitor
@@ -19,10 +19,10 @@ const AboutUsPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[90%] mx-auto px-4 py-16">
+      <div id="AboutUsMainContent" className="max-w-[90%] mx-auto px-4 py-16">
         <div className="space-y-16">
           {/* Mission Section */}
-          <section>
+          <section id="aboutUsSection">
             <h2 className="text-3xl font-bold text-primary mb-6">Our Mission</h2>
             <p className="text-lg text-primary/80">
               We aim to provide transparency and clarity in the cryptocurrency market by offering advanced tools that bridge the gap between complex blockchain data and actionable insights. Our mission is to enable every user to stay ahead in the crypto space, track key market players, and uncover trends that drive significant investment opportunities.
@@ -30,7 +30,7 @@ const AboutUsPage = () => {
           </section>
 
           {/* What We Offer Section */}
-          <section>
+          <section section id="aboutUsSection2">
             <h2 className="text-3xl font-bold text-primary mb-6">What We Offer</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -77,7 +77,7 @@ const AboutUsPage = () => {
           </section>
 
           {/* Why Choose Us Section */}
-          <section>
+          <section section id="aboutUsSection">
             <h2 className="text-3xl font-bold text-primary mb-6">Why Choose Us</h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="bg-background-secondary p-6 rounded-lg">
@@ -100,7 +100,7 @@ const AboutUsPage = () => {
           </section>
 
           {/* Vision Section */}
-          <section>
+          <section section id="aboutUsSection">
             <h2 className="text-3xl font-bold text-primary mb-6">Our Vision</h2>
             <p className="text-lg text-primary/80">
               We envision a world where every crypto investor, regardless of experience level, has access to tools that enhance their decision-making and maximize their returns. By simplifying complex blockchain data and delivering unparalleled insights, we strive to become the go-to platform for crypto investment intelligence.
