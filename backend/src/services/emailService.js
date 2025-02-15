@@ -75,6 +75,41 @@ const sendEmailNotification = async (transactionDetails, recipientEmail) => {
     throw new Error('Failed to send email notification');
   }
 };
+const sendTrackingStartedEmail = async (recipientEmail, walletAddress, transactions) => {
+  const transactionDetails = transactions.length > 0
+    ? transactions.map(txn => (
+        `Transaction Hash: ${txn.hash}\n` +
+        `From: ${txn.from}\nTo: ${txn.to}\n` +
+        `Amount: ${txn.amount} ETH\n` +
+        `Timestamp: ${txn.timestamp}\n` +
+        `Token Data: ${txn.tokenData || 'N/A'}\n\n`
+      )).join('---------------------\n')
+    : 'No transactions found yet.';
+
+  const subject = 'Wallet Tracking Started Successfully';
+  const body = `Hello,\n\nYour wallet tracking for address ${walletAddress} has started successfully.\n\nRecent transactions:\n${transactionDetails}\n\nBest Regards,\nWallet Tracker Team`;
+
+  try {
+    // Wait for the config to be initialized
+    await initializeConfig();
+
+    // Initialize Resend with the API key from config
+    const resend = new Resend(config.resend.apiKey);
+
+    // Send email using Resend API
+    await resend.emails.send({
+      from: 'Wallet Monitor <wallettracker@tixflip.in>',
+      to: recipientEmail,
+      subject,
+      html: `<pre>${body}</pre>`
+    });
+
+    console.log('Tracking started email sent successfully');
+  } catch (error) {
+    console.error('Error sending tracking started email:', error.message);
+    throw new Error('Failed to send tracking started email');
+  }
+};
 
 // Export functions
-export { sendVerificationEmail, sendEmailNotification };
+export { sendVerificationEmail, sendEmailNotification,sendTrackingStartedEmail };
