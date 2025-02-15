@@ -2,6 +2,7 @@ import { weiToEther, decodeTokenTransaction } from './web3Service.js';
 import { checkTransactions } from './transactionService.js';
 import { supabase } from '../utils/supabase.js';
 import { supabaseAdmin } from '../utils/supabaseAdmin.js';
+import { sendEmailNotification } from './emailService.js';
 
 // Get the API base URL dynamically
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
@@ -269,24 +270,15 @@ async function handleNewTransactions(transactions, email) {
         ))
         .join('---------------------\n');
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/emails/send-transaction-email`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+        try {
+            await sendEmailNotification({
                 transactionDetails: { combined: true, details: emailContent },
                 recipientEmail: email
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(await response.text());
+            });
+            console.log('Email notification sent successfully');
+        } catch (error) {
+            console.error('Failed to send transaction notification:', error);
         }
-
-        console.log('Email notification sent successfully');
-    } catch (error) {
-        console.error('Failed to send transaction notification:', error);
-    }
 }
 
 export default {
