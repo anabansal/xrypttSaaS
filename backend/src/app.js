@@ -10,6 +10,7 @@ import trackingSystem from './services/walletMonitor.js';
 import authRoutes from './routes/authRoutes.js';
 import balanceRoutes from './routes/balance.js';
 import dotenv from 'dotenv';
+import sitemapRouter from './routes/sitemap.js';
 dotenv.config();
 await initializeConfig();
 
@@ -48,7 +49,6 @@ app.get('/', (req, res) => {
    res.status(200).send('Backend is running successfully!');
 });
 
-const sitemapRouter = require('./routes/sitemap.js');
 app.use('/', sitemapRouter);
 
 // Global error handler

@@ -1,6 +1,8 @@
-const { SitemapStream, streamToPromise } = require('sitemap');
-const { createGzip } = require('zlib');
-const express = require('express');
+import { SitemapStream, streamToPromise } from 'sitemap';
+import { createGzip } from 'zlib';
+import express from 'express';
+
+
 const router = express.Router();
 
 const links = [
@@ -26,4 +28,4 @@ router.get('/sitemap.xml', async (req, res) => {
     streamToPromise(pipeline).then((sm) => res.send(sm));
 });
 
-module.exports = router;
+export default router;
