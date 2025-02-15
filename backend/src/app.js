@@ -48,6 +48,9 @@ app.get('/', (req, res) => {
    res.status(200).send('Backend is running successfully!');
 });
 
+const sitemapRouter = require('./routes/sitemap.js');
+app.use('/', sitemapRouter);
+
 // Global error handler
 app.use((err, req, res, next) => {
    console.error('Unhandled Error:', err.message);
