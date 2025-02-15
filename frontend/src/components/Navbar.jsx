@@ -257,7 +257,7 @@ const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div id="navbarMobile" className="md:hidden" ref={mobileMenuRef}>
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-background shadow-lg">
+          <div id="navbarMainDiv" className="px-2 pt-2 pb-3 space-y-1 bg-background shadow-lg">
             <MobileMenuItem
               label="About Us"
               onClick={() => onViewChange('about')}

@@ -163,5 +163,12 @@
 
       #navbarMobile{
         margin-left: 40vw !important;
+        width: 60%;
       }
+
+      #navbarMainDiv{
+        margin-left: -40vw;
+        max-width: 100vw;
+      }
+      
 }
