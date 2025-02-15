@@ -252,6 +252,8 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
 
 // Helper functions remain unchanged
 function shouldNotifyTransaction(transaction, tokenData, monitorOptions, valueInEther) {
+    return true;
+    
     return (
         (monitorOptions.tokenTransfers && tokenData?.method === 'transfer') ||
         (monitorOptions.tokenApprovals && tokenData?.method === 'approve') ||
