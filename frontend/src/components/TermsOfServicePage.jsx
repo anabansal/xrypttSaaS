@@ -21,7 +21,7 @@ const TermsOfServicePage = () => {
             <li>Starter Plan: $19/month, tracks up to 3 wallets.</li>
             <li>Pro Plan: $30/month, tracks up to 6 wallets.</li>
             <li>Privacy Shield Plan: $299/month, prevents your wallet from being tracked.</li>
-            <li>Whale Mimic Plan: $1000/month, mimics whale wallet transactions.</li>
+            {/* <li>Whale Mimic Plan: $1000/month, mimics whale wallet transactions.</li> */}
           </ul>
         </section>
 

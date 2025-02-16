@@ -11,7 +11,7 @@ const RefundPolicyPage = () => {
           <h2 className="text-2xl font-bold text-primary mt-8 mb-4">1. Eligibility for Refunds</h2>
           <p>Refunds are available under the following conditions:</p>
           <div className="ml-6">
-            <p><strong>All Plans (Starter, Pro, Privacy Shield, Whale Mimic)</strong></p>
+            <p><strong>All Plans (Starter, Pro, Privacy Shield)</strong></p>
             <ul className="list-disc ml-6">
               <li>You may request a refund within 3 days of your initial subscription purchase.</li>
               <li>Refunds are only available for the first billing cycle.</li>
