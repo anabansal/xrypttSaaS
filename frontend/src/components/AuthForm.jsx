@@ -119,69 +119,9 @@ const AuthForm = ({ onAuthSuccess }) => {
   };
 
   return (
-    <div className="flex min-h-[600px] rounded-lg overflow-hidden shadow-2xl">
-      {/* Left Section - Black Background */}
-      <div className="w-1/2 bg-primary p-12 flex flex-col justify-center">
-        {mode === 'signup' ? (
-          <>
-            <h2 className="text-4xl font-bold text-background mb-6">
-              Your Demo Will Include:
-            </h2>
-            <ul className="space-y-4 text-background">
-              <li className="flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                A complete walkthrough – Learn how to track Ethereum wallets, analyze token holders, and monitor whale portfolios.
-              </li>
-              <li className="flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Q&A session – Get direct answers from our experts on how to maximize insights from wallet tracking and token analytics.
-              </li>
-              <li className="flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Interactive discussion – Tell us about your needs, and we'll show you how our platform can help you stay ahead in the crypto market.
-              </li>
-            </ul>
-          </>
-        ) : (
-          <>
-            <h2 className="text-4xl font-bold text-background mb-6">
-              Welcome to Wallet Monitor
-            </h2>
-            <p className="text-background text-lg mb-8">
-              Track Ethereum wallet transactions, analyze tokens, and monitor your digital assets in real-time.
-            </p>
-            <ul className="space-y-4 text-background">
-              <li className="flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Real-time transaction monitoring
-              </li>
-              <li className="flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Token analysis and insights
-              </li>
-              <li className="flex items-center">
-                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
-                Instant notifications
-              </li>
-            </ul>
-          </>
-        )}
-      </div>
-
-      {/* Right Section - Form */}
-      <div className="w-1/2 bg-background p-12">
+    <div className="flex flex-col md:flex-row min-h-[600px] rounded-lg overflow-hidden shadow-2xl">
+      {/* Form Section - Moved to top on mobile */}
+      <div className="w-full md:w-1/2 bg-background p-6 md:p-12 order-1 md:order-2">
         <div className="max-w-md mx-auto">
           <h3 className="text-2xl font-bold text-primary mb-8">
             {mode === 'signin' ? 'Sign In' : 
@@ -192,6 +132,7 @@ const AuthForm = ({ onAuthSuccess }) => {
           </h3>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Form fields remain the same */}
             {(mode !== 'reset') && (
               <div>
                 <label className="block text-sm font-medium text-primary mb-2">Email</label>
@@ -289,6 +230,66 @@ const AuthForm = ({ onAuthSuccess }) => {
             </div>
           </form>
         </div>
+      </div>
+
+      {/* Welcome Section - Moved to bottom on mobile */}
+      <div className="w-full md:w-1/2 bg-primary p-6 md:p-12 order-2 md:order-1">
+        {mode === 'signup' ? (
+          <>
+            <h2 className="text-3xl md:text-4xl font-bold text-background mb-6">
+              Your Demo Will Include:
+            </h2>
+            <ul className="space-y-4 text-background">
+              <li className="flex items-center">
+                <svg className="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>A complete walkthrough – Learn how to track Ethereum wallets, analyze token holders, and monitor whale portfolios.</span>
+              </li>
+              <li className="flex items-center">
+                <svg className="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Q&A session – Get direct answers from our experts on how to maximize insights from wallet tracking and token analytics.</span>
+              </li>
+              <li className="flex items-center">
+                <svg className="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Interactive discussion – Tell us about your needs, and we'll show you how our platform can help you stay ahead in the crypto market.</span>
+              </li>
+            </ul>
+          </>
+        ) : (
+          <>
+            <h2 className="text-3xl md:text-4xl font-bold text-background mb-6">
+              Welcome to Wallet Monitor
+            </h2>
+            <p className="text-background text-lg mb-8">
+              Track Ethereum wallet transactions, analyze tokens, and monitor your digital assets in real-time.
+            </p>
+            <ul className="space-y-4 text-background">
+              <li className="flex items-center">
+                <svg className="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Real-time transaction monitoring</span>
+              </li>
+              <li className="flex items-center">
+                <svg className="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Token analysis and insights</span>
+              </li>
+              <li className="flex items-center">
+                <svg className="w-6 h-6 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Instant notifications</span>
+              </li>
+            </ul>
+          </>
+        )}
       </div>
     </div>
   );
