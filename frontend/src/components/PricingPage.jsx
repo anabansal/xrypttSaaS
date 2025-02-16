@@ -136,7 +136,7 @@ const PricingPage = () => {
           </div>
 
           {/* Whale Mimic Plan */}
-          <div className="bg-black rounded-3xl shadow-2xl overflow-hidden text-white transform hover:scale-105 transition-transform duration-300 flex flex-col">
+          {/* <div className="bg-black rounded-3xl shadow-2xl overflow-hidden text-white transform hover:scale-105 transition-transform duration-300 flex flex-col">
             <div className="px-8 py-10 flex-grow">
               <h3 className="text-2xl font-bold">Whale Mimic</h3>
               <p className="mt-4 text-gray-400">Replicate whale moves seamlessly</p>
@@ -176,7 +176,7 @@ const PricingPage = () => {
                 Start Mimicking
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
