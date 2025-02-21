@@ -134,7 +134,7 @@ export async function stopWalletTracking(email, client, isServerInit = false) {
     console.log(`Stopping wallet tracking for email: ${email}`);
     
     for (const [key, intervalId] of walletIntervals.entries()) {
-        if (key.startsWith(`${email}-`)) {
+        if (key === email) {  // Changed from startsWith to equality check
             clearInterval(intervalId);
             walletIntervals.delete(key);
             processingState.delete(key);
@@ -212,17 +212,53 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
             weiToEther(transaction.value),
             decodeTokenTransaction(transaction.input)
         ]);
+        
+        let transactionAmount;
+        if (tokenData && (tokenData.method === 'transfer' || tokenData.method === 'approve')) {
+          // Convert token's raw value to Ether.
+          // (Assumes token has 18 decimals; adjust conversion if needed.)
+          transactionAmount = await weiToEther(tokenData.value);
+        } else {
+          transactionAmount = valueInEther;
+        }
 
-        if (shouldNotifyTransaction(transaction, tokenData, monitorOptions, valueInEther)) {
+        if (shouldNotifyTransaction(transaction, tokenData, monitorOptions,transactionAmount)) {
             console.log(`Adding transaction ${transaction.hash} to notification list`);
-            newTransactions.push({
-                hash: transaction.hash,
-                from: transaction.from,
-                to: transaction.to,
-                amount: valueInEther,
-                timestamp: new Date(parseInt(transaction.timeStamp) * 1000).toLocaleString(),
-                tokenData: tokenData ? JSON.stringify(tokenData) : null,
-            });
+            if (tokenData) {
+                if (tokenData.method === 'transfer') {
+                  // For token transfers, sender is still transaction.from,
+                  // while the real recipient comes from tokenData.to.
+                  newTransactions.push({
+                    hash: transaction.hash,
+                    from: transaction.from,
+                    to: tokenData.to, // Real recipient from the token transfer input data
+                    amount: transactionAmount,
+                    timestamp: new Date(parseInt(transaction.timeStamp) * 1000).toLocaleString(),
+                    tokenData: JSON.stringify(tokenData),
+                  });
+                } else if (tokenData.method === 'approve') {
+                  // For token approvals, there is no transfer of tokens,
+                  // so record the approved spender instead.
+                  newTransactions.push({
+                    hash: transaction.hash,
+                    from: transaction.from,
+                    spender: tokenData.spender, // Approved spender
+                    approvedAmount: transactionAmount,
+                    timestamp: new Date(parseInt(transaction.timeStamp) * 1000).toLocaleString(),
+                    tokenData: JSON.stringify(tokenData),
+                  });
+                }
+              } else {
+                // For ETH transfers, use the transaction.to field.
+                newTransactions.push({
+                  hash: transaction.hash,
+                  from: transaction.from,
+                  to: transaction.to,
+                  amount: transactionAmount,
+                  timestamp: new Date(parseInt(transaction.timeStamp) * 1000).toLocaleString(),
+                  tokenData: null,
+                });
+            }
         }
     }
 
@@ -251,15 +287,16 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
 }
 
 // Helper functions remain unchanged
-function shouldNotifyTransaction(transaction, tokenData, monitorOptions, valueInEther) {
-    return true;
-    
+function shouldNotifyTransaction(transaction, tokenData, monitorOptions, transactionAmount) {
+    // Parse the amount to a float for comparison.
+    const amount = parseFloat(transactionAmount);
+  
     return (
-        (monitorOptions.tokenTransfers && tokenData?.method === 'transfer') ||
-        (monitorOptions.tokenApprovals && tokenData?.method === 'approve') ||
-        (monitorOptions.etherTransfers && parseFloat(valueInEther) >= monitorOptions.minTransactionValue)
+      (monitorOptions.tokenTransfers && tokenData?.method === 'transfer' && amount >= monitorOptions.minTransactionValue) ||
+      (monitorOptions.tokenApprovals && tokenData?.method === 'approve' ) ||
+      (monitorOptions.etherTransfers && !tokenData && amount >= monitorOptions.minTransactionValue)
     );
-}
+  }
 
 async function handleNewTransactions(transactions, email) {
     console.log(`Creating email content for ${transactions.length} transactions`);
