@@ -103,11 +103,22 @@ router.get('/settings', authenticate, async (req, res) => {
 router.put('/settings', authenticate, async (req, res) => {
     const { email, wallets, checkInterval } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
+
+    console.log("Received PUT /settings request");
+    console.log("Request body:", req.body);
+    console.log("Authorization token:", token);
+
     const supabase = getSupabaseClient(token);
+    if (!supabase) {
+        return res.status(500).json({ error: "Supabase client not initialized" });
+    }
 
     try {
-        console.log('update');
+        if (!email || !wallets || !checkInterval) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
 
+        console.log(`Updating settings for ${email}`);
         const { data, error } = await supabase
             .from('users')
             .update({
@@ -118,15 +129,23 @@ router.put('/settings', authenticate, async (req, res) => {
             .eq('email', email)
             .select();
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase error:", error);
+            throw error;
+        }
+
+        console.log("Update successful:", data);
+
         trackWalletsContinuously(email, client, false).catch((err) =>
             console.error(`Error starting wallet tracking for ${email}:`, err)
         );
 
         res.json(data);
     } catch (err) {
+        console.error("Internal Server Error:", err);
         res.status(500).json({ error: err.message });
     }
 });
+
 
 export default router;
