@@ -1,5 +1,6 @@
 import Web3 from 'web3';
 import { config, initializeConfig } from '../config/index.js'; // Import the config and initializeConfig
+import BigNumber from 'bignumber.js';
 
 const ERC20_DECIMALS_ABI = [
   {
@@ -47,17 +48,23 @@ export const getTokenDecimals = async (tokenAddress) => {
 };
 
 // Convert token value based on its decimals
+
 export const convertTokenValue = (value, decimals) => {
   try {
-    const divisor = new Web3.utils.BN(10).pow(new Web3.utils.BN(decimals));
-    const valueBN = new Web3.utils.BN(value);
-    const convertedValue = valueBN.div(divisor);
+    // Convert the raw value (which is usually a string representing an integer)
+    // to a BigNumber instance.
+    const valueBN = new BigNumber(value);
+    // Calculate the divisor as 10^decimals.
+    const divisor = new BigNumber(10).exponentiatedBy(decimals);
+    // Perform the division to get the fractional amount.
+    const convertedValue = valueBN.dividedBy(divisor);
+    // Return the converted value as a string.
     return convertedValue.toString();
   } catch (error) {
     console.error('Error converting token value:', error.message);
     throw new Error('Failed to convert token value');
   }
-};
+}
 // Convert Wei to Ether
 export const weiToEther = async (wei) => {
   try {
@@ -73,7 +80,8 @@ export const weiToEther = async (wei) => {
     const web3 = new Web3(infuraEndpoint); // Initialize Web3 instance with the Infura endpoint
 
     // Convert Wei to Ether
-    return web3.utils.fromWei(wei, 'ether');
+    return web3.utils.fromWei(wei.toString(), 'ether');
+
   } catch (error) {
     console.error('Error converting Wei to Ether:', error.message);
     throw new Error('Failed to convert Wei to Ether');
@@ -99,21 +107,34 @@ export const decodeTokenTransaction = async (inputData, tokenAddress) => {
     // Get token decimals
     const decimals = await getTokenDecimals(tokenAddress);
 
-    // Function to convert the value based on token decimals
-    const convertValue = (rawValue) => {
-      const value = web3.utils.hexToNumberString(`0x${rawValue.padStart(64, '0')}`);
-      return convertTokenValue(value, decimals);
+    // Function to decode and convert value using BigNumber for fractional amounts
+    const decodeValue = (hexValue) => {
+      const rawValue = web3.utils.hexToNumberString(`0x${hexValue.padStart(64, '0')}`);
+      return convertTokenValue(rawValue, decimals);
     };
 
     if (methodId === '0xa9059cbb') {
+      // Transfer method: address parameter is at bytes 4-36
       const to = `0x${params.slice(24, 64).padStart(40, '0')}`;
-      const value = convertValue(params.slice(64));
-      return { method: 'transfer', to, value, decimals };
-    } 
-    else if (methodId === '0x095ea7b3') {
+      const value = decodeValue(params.slice(64));
+      return { 
+        method: 'transfer', 
+        to, 
+        value, 
+        decimals,
+        tokenAddress 
+      };
+    } else if (methodId === '0x095ea7b3') {
+      // Approve method: spender parameter is at bytes 4-36
       const spender = `0x${params.slice(24, 64).padStart(40, '0')}`;
-      const value = convertValue(params.slice(64));
-      return { method: 'approve', spender, value, decimals };
+      const value = decodeValue(params.slice(64));
+      return { 
+        method: 'approve', 
+        spender, 
+        value, 
+        decimals,
+        tokenAddress 
+      };
     }
 
     return { method: 'unknown', rawData: inputData };
