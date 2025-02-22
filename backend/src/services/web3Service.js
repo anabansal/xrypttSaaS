@@ -1,7 +1,8 @@
 import Web3 from 'web3';
-import { config, initializeConfig } from '../config/index.js'; // Import the config and initializeConfig
 import BigNumber from 'bignumber.js';
+import { config, initializeConfig } from '../config/index.js';
 
+// ABI fragment for getting token decimals
 const ERC20_DECIMALS_ABI = [
   {
     constant: true,
@@ -17,17 +18,15 @@ const ERC20_DECIMALS_ABI = [
 // Cache for token decimals to reduce API calls
 const tokenDecimalsCache = new Map();
 
-// Get decimals for a token contract
+// Get decimals for a token contract, ensuring it's a number (not a BigInt)
 export const getTokenDecimals = async (tokenAddress) => {
   try {
-    // Check cache first
     if (tokenDecimalsCache.has(tokenAddress)) {
       return tokenDecimalsCache.get(tokenAddress);
     }
 
     await initializeConfig();
     const infuraEndpoint = config.infura.endpoint;
-
     if (!infuraEndpoint) {
       throw new Error('Infura endpoint is not configured properly');
     }
@@ -35,67 +34,57 @@ export const getTokenDecimals = async (tokenAddress) => {
     const web3 = new Web3(infuraEndpoint);
     const tokenContract = new web3.eth.Contract(ERC20_DECIMALS_ABI, tokenAddress);
     
+    // Call the decimals() function from the contract
     const decimals = await tokenContract.methods.decimals().call();
+    // Convert decimals to a Number to avoid BigInt serialization issues
+    const decimalsNumber = Number(decimals);
+    tokenDecimalsCache.set(tokenAddress, decimalsNumber);
     
-    // Cache the result
-    tokenDecimalsCache.set(tokenAddress, decimals);
-    
-    return decimals;
+    return decimalsNumber;
   } catch (error) {
     console.error(`Error getting token decimals for ${tokenAddress}:`, error.message);
     return 18; // Default to 18 decimals if unable to fetch
   }
 };
 
-// Convert token value based on its decimals
-
+// Convert token value based on its decimals using BigNumber for fractional amounts
 export const convertTokenValue = (value, decimals) => {
   try {
-    // Convert the raw value (which is usually a string representing an integer)
-    // to a BigNumber instance.
     const valueBN = new BigNumber(value);
-    // Calculate the divisor as 10^decimals.
     const divisor = new BigNumber(10).exponentiatedBy(decimals);
-    // Perform the division to get the fractional amount.
     const convertedValue = valueBN.dividedBy(divisor);
-    // Return the converted value as a string.
     return convertedValue.toString();
   } catch (error) {
     console.error('Error converting token value:', error.message);
     throw new Error('Failed to convert token value');
   }
-}
-// Convert Wei to Ether
+};
+
+// Convert Wei to Ether (for ETH transactions)
 export const weiToEther = async (wei) => {
   try {
-    // Ensure config is initialized before accessing it
     await initializeConfig();
-
-    const infuraEndpoint = config.infura.endpoint; // Get Infura endpoint from config
-
+    const infuraEndpoint = config.infura.endpoint;
     if (!infuraEndpoint) {
       throw new Error('Infura endpoint is not configured properly');
     }
-
-    const web3 = new Web3(infuraEndpoint); // Initialize Web3 instance with the Infura endpoint
-
-    // Convert Wei to Ether
+    
+    const web3 = new Web3(infuraEndpoint);
+    // Ensure wei is a string before converting
     return web3.utils.fromWei(wei.toString(), 'ether');
-
   } catch (error) {
     console.error('Error converting Wei to Ether:', error.message);
     throw new Error('Failed to convert Wei to Ether');
   }
 };
 
-// Decode token transaction input data
+// Enhanced token transaction decoder with proper value conversion for fractional amounts
 export const decodeTokenTransaction = async (inputData, tokenAddress) => {
   if (!inputData || inputData === '0x') return null;
 
   try {
     await initializeConfig();
     const infuraEndpoint = config.infura.endpoint;
-
     if (!infuraEndpoint) {
       throw new Error('Infura endpoint is not configured properly');
     }
@@ -104,7 +93,7 @@ export const decodeTokenTransaction = async (inputData, tokenAddress) => {
     const methodId = inputData.slice(0, 10);
     const params = inputData.slice(10);
 
-    // Get token decimals
+    // Get token decimals (now guaranteed to be a Number)
     const decimals = await getTokenDecimals(tokenAddress);
 
     // Function to decode and convert value using BigNumber for fractional amounts
@@ -121,7 +110,7 @@ export const decodeTokenTransaction = async (inputData, tokenAddress) => {
         method: 'transfer', 
         to, 
         value, 
-        decimals,
+        decimals, // already a number
         tokenAddress 
       };
     } else if (methodId === '0x095ea7b3') {
@@ -132,7 +121,7 @@ export const decodeTokenTransaction = async (inputData, tokenAddress) => {
         method: 'approve', 
         spender, 
         value, 
-        decimals,
+        decimals, // already a number
         tokenAddress 
       };
     }
