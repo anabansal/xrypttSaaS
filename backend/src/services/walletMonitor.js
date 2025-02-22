@@ -208,18 +208,18 @@ async function processWalletTransactions(email, walletAddress, monitorOptions, w
             break;
         }
 
-        const [valueInEther, tokenData] = await Promise.all([
-            weiToEther(transaction.value),
-            decodeTokenTransaction(transaction.input)
-        ]);
-        
         let transactionAmount;
+        let tokenData = null;
+
+        if (transaction.input && transaction.input !== '0x') {
+        // This is a token transaction
+        tokenData = await decodeTokenTransaction(transaction.input, transaction.to);
         if (tokenData && (tokenData.method === 'transfer' || tokenData.method === 'approve')) {
-          // Convert token's raw value to Ether.
-          // (Assumes token has 18 decimals; adjust conversion if needed.)
-          transactionAmount = await weiToEther(tokenData.value);
+        transactionAmount = tokenData.value; // Value is already converted based on token decimals
+        }
         } else {
-          transactionAmount = valueInEther;
+        // This is a regular ETH transaction
+        transactionAmount = await weiToEther(transaction.value);
         }
 
         if (shouldNotifyTransaction(transaction, tokenData, monitorOptions,transactionAmount)) {
@@ -293,33 +293,29 @@ function shouldNotifyTransaction(transaction, tokenData, monitorOptions, transac
   
     return (
       (monitorOptions.tokenTransfers && tokenData?.method === 'transfer' && amount >= monitorOptions.minTransactionValue) ||
-      (monitorOptions.tokenApprovals && tokenData?.method === 'approve' ) ||
+      (monitorOptions.tokenApprovals && tokenData?.method === 'approve'&& amount >= monitorOptions.minTransactionValue ) ||
       (monitorOptions.etherTransfers && !tokenData && amount >= monitorOptions.minTransactionValue)
     );
   }
 
-async function handleNewTransactions(transactions, email) {
+  async function handleNewTransactions(transactions, email) {
     console.log(`Creating email content for ${transactions.length} transactions`);
     const emailContent = transactions
-        .map((txn, index) => (
-            `Transaction ${index + 1}:\nHash: ${txn.hash}\n` +
-            `From: ${txn.from}\nTo: ${txn.to}\n` +
-            `Amount: ${txn.amount} ETH\n` +
-            `Timestamp: ${txn.timestamp}\n` +
-            `Token Data: ${txn.tokenData || 'N/A'}\n\n`
-        ))
-        .join('---------------------\n');
-
-        try {
-            await sendEmailNotification(
-                { combined: true, details: emailContent },
-                email
-            );
-            console.log('Email notification sent successfully');
-        } catch (error) {
-            console.error('Failed to send transaction notification:', error);
-        }
-}
+      .map((txn, index) => (
+        `Transaction ${index + 1}:\n${formatTransactionDetails(txn)}\n`
+      ))
+      .join('\n---------------------\n');
+  
+    try {
+      await sendEmailNotification(
+        { combined: true, details: emailContent },
+        email
+      );
+      console.log('Email notification sent successfully');
+    } catch (error) {
+      console.error('Failed to send transaction notification:', error);
+    }
+  }
 
 export default {
     initializeTrackingOnStartup,

@@ -1,6 +1,78 @@
 import { Resend } from 'resend';
 import { config, initializeConfig } from '../config/index.js'; // Ensure correct import path
 
+
+const formatTransactionDetails = (txn) => {
+  const commonDetails = `Transaction Hash: ${txn.hash}
+From: ${txn.from}
+Timestamp: ${txn.timestamp}`;
+
+  if (txn.tokenData) {
+    // Parse token data
+    const tokenInfo = JSON.parse(txn.tokenData);
+    
+    if (tokenInfo.method === 'transfer') {
+      return `${commonDetails}
+Type: Token Transfer
+To: ${txn.to}
+Amount: ${txn.amount} ${tokenInfo.symbol || 'tokens'}
+Token Contract: ${tokenInfo.tokenAddress || 'N/A'}
+Token Decimals: ${tokenInfo.decimals || 'N/A'}`;
+    } else if (tokenInfo.method === 'approve') {
+      return `${commonDetails}
+Type: Token Approval
+Spender: ${txn.spender}
+Approved Amount: ${txn.approvedAmount} ${tokenInfo.symbol || 'tokens'}
+Token Contract: ${tokenInfo.tokenAddress || 'N/A'}
+Token Decimals: ${tokenInfo.decimals || 'N/A'}`;
+    }
+  }
+
+  // Default ETH transfer format
+  return `${commonDetails}
+Type: ETH Transfer
+To: ${txn.to}
+Amount: ${txn.amount} ETH`;
+};
+
+// Format HTML for a single transaction
+const formatTransactionHTML = (txn) => {
+  const tokenInfo = txn.tokenData ? JSON.parse(txn.tokenData) : null;
+  
+  const commonHTML = `
+    <li><strong>Hash:</strong> ${txn.hash}</li>
+    <li><strong>From:</strong> ${txn.from}</li>
+    <li><strong>Timestamp:</strong> ${txn.timestamp}</li>`;
+
+  if (tokenInfo) {
+    if (tokenInfo.method === 'transfer') {
+      return `<ul>
+        ${commonHTML}
+        <li><strong>Type:</strong> Token Transfer</li>
+        <li><strong>To:</strong> ${txn.to}</li>
+        <li><strong>Amount:</strong> ${txn.amount} ${tokenInfo.symbol || 'tokens'}</li>
+        <li><strong>Token Contract:</strong> ${tokenInfo.tokenAddress || 'N/A'}</li>
+        <li><strong>Token Decimals:</strong> ${tokenInfo.decimals || 'N/A'}</li>
+      </ul>`;
+    } else if (tokenInfo.method === 'approve') {
+      return `<ul>
+        ${commonHTML}
+        <li><strong>Type:</strong> Token Approval</li>
+        <li><strong>Spender:</strong> ${txn.spender}</li>
+        <li><strong>Approved Amount:</strong> ${txn.approvedAmount} ${tokenInfo.symbol || 'tokens'}</li>
+        <li><strong>Token Contract:</strong> ${tokenInfo.tokenAddress || 'N/A'}</li>
+        <li><strong>Token Decimals:</strong> ${tokenInfo.decimals || 'N/A'}</li>
+      </ul>`;
+    }
+  }
+
+  return `<ul>
+    ${commonHTML}
+    <li><strong>Type:</strong> ETH Transfer</li>
+    <li><strong>To:</strong> ${txn.to}</li>
+    <li><strong>Amount:</strong> ${txn.amount} ETH</li>
+  </ul>`;
+};
 // Define the sendVerificationEmail function
 const sendVerificationEmail = async (email, otp) => {
   try {
@@ -37,31 +109,26 @@ const sendVerificationEmail = async (email, otp) => {
 const sendEmailNotification = async (transactionDetails, recipientEmail) => {
   const { combined, details } = transactionDetails;
 
-  // Compose email content dynamically based on transaction details
   const subject = combined
-    ? 'New Ethereum Transactions Detected (Multiple)'
-    : 'New Ethereum Transaction Detected';
+    ? 'New Blockchain Transactions Detected'
+    : 'New Blockchain Transaction Detected';
 
   const body = combined
-    ? `<p>The following transactions were detected:</p><pre>${details}</pre>`
-    : `<p>Transaction details:</p>
-        <ul>
-          <li><strong>Hash:</strong> ${transactionDetails.hash}</li>
-          <li><strong>From:</strong> ${transactionDetails.from}</li>
-          <li><strong>To:</strong> ${transactionDetails.to}</li>
-          <li><strong>Amount:</strong> ${transactionDetails.amount} ETH</li>
-          <li><strong>Timestamp:</strong> ${transactionDetails.timestamp}</li>
-          <li><strong>Token Data:</strong> ${transactionDetails.tokenData || 'N/A'}</li>
-        </ul>`;
+    ? `<div style="font-family: Arial, sans-serif;">
+        <h2>New Transactions Detected</h2>
+        <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">${details}</pre>
+        <p>Note: Token amounts are displayed in their standard units with appropriate decimals.</p>
+      </div>`
+    : `<div style="font-family: Arial, sans-serif;">
+        <h2>New Transaction Detected</h2>
+        ${formatTransactionHTML(transactionDetails)}
+        <p>Note: Token amounts are displayed in their standard units with appropriate decimals.</p>
+      </div>`;
 
   try {
-    // Wait for the config to be initialized
     await initializeConfig();
-
-    // Initialize Resend with the API key from config
     const resend = new Resend(config.resend.apiKey);
 
-    // Send email using Resend API
     await resend.emails.send({
       from: 'Wallet Monitor <wallettracker@tixflip.in>',
       to: recipientEmail,
@@ -77,31 +144,32 @@ const sendEmailNotification = async (transactionDetails, recipientEmail) => {
 };
 const sendTrackingStartedEmail = async (recipientEmail, walletAddress, transactions) => {
   const transactionDetails = transactions.length > 0
-    ? transactions.map(txn => (
-        `Transaction Hash: ${txn.hash}\n` +
-        `From: ${txn.from}\nTo: ${txn.to}\n` +
-        `Amount: ${txn.amount} ETH\n` +
-        `Timestamp: ${txn.timestamp}\n` +
-        `Token Data: ${txn.tokenData || 'N/A'}\n\n`
-      )).join('---------------------\n')
+    ? transactions.map(txn => formatTransactionDetails(txn)).join('\n---------------------\n')
     : 'No transactions found yet.';
 
   const subject = 'Wallet Tracking Started Successfully';
-  const body = `Hello,\n\nYour wallet tracking for address ${walletAddress} has started successfully.\n\nRecent transactions:\n${transactionDetails}\n\nBest Regards,\nWallet Tracker Team`;
+  const body = `
+    <div style="font-family: Arial, sans-serif;">
+      <h2>Wallet Tracking Started</h2>
+      <p>Hello,</p>
+      <p>Your wallet tracking for address <strong>${walletAddress}</strong> has started successfully.</p>
+      <h3>Recent Transactions:</h3>
+      <pre style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+${transactionDetails}
+      </pre>
+      <p>Note: Token amounts are displayed in their standard units with appropriate decimals.</p>
+      <p>Best Regards,<br>Wallet Tracker Team</p>
+    </div>`;
 
   try {
-    // Wait for the config to be initialized
     await initializeConfig();
-
-    // Initialize Resend with the API key from config
     const resend = new Resend(config.resend.apiKey);
 
-    // Send email using Resend API
     await resend.emails.send({
       from: 'Wallet Monitor <wallettracker@tixflip.in>',
       to: recipientEmail,
       subject,
-      html: `<pre>${body}</pre>`
+      html: body,
     });
 
     console.log('Tracking started email sent successfully');
