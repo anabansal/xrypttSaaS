@@ -180,4 +180,4 @@ ${transactionDetails}
 };
 
 // Export functions
-export { sendVerificationEmail, sendEmailNotification,sendTrackingStartedEmail };
+export { formatTransactionDetails,sendVerificationEmail, sendEmailNotification,sendTrackingStartedEmail };

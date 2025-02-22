@@ -2,7 +2,7 @@ import { weiToEther, decodeTokenTransaction } from './web3Service.js';
 import { checkTransactions } from './transactionService.js';
 import { supabase } from '../utils/supabase.js';
 import { supabaseAdmin } from '../utils/supabaseAdmin.js';
-import { sendEmailNotification,sendTrackingStartedEmail } from './emailService.js';
+import { sendEmailNotification,sendTrackingStartedEmail,formatTransactionDetails } from './emailService.js';
 
 // Get the API base URL dynamically
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
