@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
-import logo from '../assets/xrypttt-removebg-preview.png'
+import logo from '../assets/xrypttt-removebg-preview.png';
 
-const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
+const Navbar = ({ user, onLogout }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const productsDropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -27,47 +30,50 @@ const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const MobileMenuItem = ({ label, onClick, isActive }) => (
-    <button
+  const MobileMenuItem = ({ to, label, onClick, isActive }) => (
+    <Link
+      to={to}
       onClick={() => {
-        onClick();
+        if (onClick) onClick();
         setIsMobileMenuOpen(false);
       }}
-      className={`w-full text-left px-4 py-2 text-sm ${
+      className={`block w-full text-left px-4 py-2 text-sm ${
         isActive ? 'bg-primary text-background' : 'text-primary hover:bg-background-secondary'
       }`}
     >
       {label}
-    </button>
+    </Link>
   );
+
+  const isCurrentPath = (path) => location.pathname === path;
 
   return (
     <nav style={{position: 'sticky', top: 0, zIndex: 100}} className="bg-background shadow-lg transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <button
-              onClick={() => onViewChange('home')}
+            <Link
+              to="/"
               className="text-2xl font-bold text-primary hover:text-primary-hover transition-colors duration-200 flex items-center"
             >
               <img src={logo} alt="" style={{width:'50px',height:'40px'}} className="h-8 w-8 mr-2" />
               XRYPTT
-            </button>
+            </Link>
           </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            <button
-              onClick={() => onViewChange('about')}
+            <Link
+              to="/about"
               className={`px-3 py-2 rounded-md text-sm font-medium ${
-                currentView === 'about'
+                isCurrentPath('/about')
                   ? 'bg-primary text-background'
                   : 'text-primary hover:bg-background-secondary'
               }`}
             >
               About Us
-            </button>
+            </Link>
 
             {user ? (
               <>
@@ -93,67 +99,59 @@ const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
                   {isProductsDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-background ring-1 ring-black ring-opacity-5">
                       <div className="py-1">
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            onViewChange('analyzer');
-                          }}
+                        <Link
+                          to="/analyzer"
+                          onClick={() => setIsProductsDropdownOpen(false)}
                           className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
                         >
                           Token Analyzer
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            onViewChange('portfolio');
-                          }}
+                        </Link>
+                        <Link
+                          to="/portfolio"
+                          onClick={() => setIsProductsDropdownOpen(false)}
                           className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
                         >
                           Portfolio Viewer
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            onViewChange('stealth');
-                          }}
+                        </Link>
+                        <Link
+                          to="/stealth"
+                          onClick={() => setIsProductsDropdownOpen(false)}
                           className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
                         >
                           StealthWallet
-                        </button>
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            onViewChange('register');
-                          }}
+                        </Link>
+                        <Link
+                          to="/register"
+                          onClick={() => setIsProductsDropdownOpen(false)}
                           className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
                         >
                           Wallet Tracking
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <button
-                  onClick={() => onViewChange('pricing')}
+                <Link
+                  to="/pricing"
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'pricing'
+                    isCurrentPath('/pricing')
                       ? 'bg-primary text-background'
                       : 'text-primary hover:bg-background-secondary'
                   }`}
                 >
                   Pricing
-                </button>
-                <button
-                  onClick={() => onViewChange('news')}
+                </Link>
+                <Link
+                  to="/news"
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'news'
+                    isCurrentPath('/news')
                       ? 'bg-primary text-background'
                       : 'text-primary hover:bg-background-secondary'
                   }`}
                 >
                   AI News
-                </button>
+                </Link>
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -179,19 +177,18 @@ const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
                         <div className="px-4 py-2 text-sm text-primary border-b">
                           {user.email}
                         </div>
-                        <button
-                          onClick={() => {
-                            setIsDropdownOpen(false);
-                            onViewChange('dashboard');
-                          }}
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setIsDropdownOpen(false)}
                           className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
                         >
                           Dashboard
-                        </button>
+                        </Link>
                         <button
                           onClick={() => {
                             setIsDropdownOpen(false);
                             onLogout();
+                            navigate('/');
                           }}
                           className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
                         >
@@ -204,18 +201,18 @@ const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
               </>
             ) : (
               <>
-                <button
-                  onClick={() => onViewChange('pricing')}
+                <Link
+                  to="/pricing"
                   className="px-3 py-2 rounded-md text-sm font-medium text-primary hover:bg-background-secondary"
                 >
                   Pricing
-                </button>
-                <button
-                  onClick={() => onViewChange('auth')}
+                </Link>
+                <Link
+                  to="/auth"
                   className="px-4 py-2 rounded-md text-sm font-medium text-background bg-primary hover:bg-primary-hover"
                 >
                   Sign In
-                </button>
+                </Link>
               </>
             )}
           </div>
@@ -259,68 +256,73 @@ const Navbar = ({ user, currentView, onViewChange, onLogout }) => {
         <div id="navbarMobile" className="md:hidden" ref={mobileMenuRef}>
           <div id="navbarMainDiv" className="px-2 pt-2 pb-3 space-y-1 bg-background shadow-lg">
             <MobileMenuItem
+              to="/about"
               label="About Us"
-              onClick={() => onViewChange('about')}
-              isActive={currentView === 'about'}
+              isActive={isCurrentPath('/about')}
             />
             
             {user ? (
               <>
                 <div className="px-4 py-2 text-sm font-medium text-primary">Products</div>
                 <MobileMenuItem
+                  to="/analyzer"
                   label="Token Analyzer"
-                  onClick={() => onViewChange('analyzer')}
-                  isActive={currentView === 'analyzer'}
+                  isActive={isCurrentPath('/analyzer')}
                 />
                 <MobileMenuItem
+                  to="/portfolio"
                   label="Portfolio Viewer"
-                  onClick={() => onViewChange('portfolio')}
-                  isActive={currentView === 'portfolio'}
+                  isActive={isCurrentPath('/portfolio')}
                 />
                 <MobileMenuItem
+                  to="/stealth"
                   label="StealthWallet"
-                  onClick={() => onViewChange('stealth')}
-                  isActive={currentView === 'stealth'}
+                  isActive={isCurrentPath('/stealth')}
                 />
                 <MobileMenuItem
+                  to="/register"
                   label="Wallet Tracking"
-                  onClick={() => onViewChange('register')}
-                  isActive={currentView === 'register'}
+                  isActive={isCurrentPath('/register')}
                 />
                 <MobileMenuItem
+                  to="/pricing"
                   label="Pricing"
-                  onClick={() => onViewChange('pricing')}
-                  isActive={currentView === 'pricing'}
+                  isActive={isCurrentPath('/pricing')}
                 />
                 <MobileMenuItem
+                  to="/news"
                   label="AI News"
-                  onClick={() => onViewChange('news')}
-                  isActive={currentView === 'news'}
+                  isActive={isCurrentPath('/news')}
                 />
                 <div className="border-t border-gray-200 my-2"></div>
                 <div className="px-4 py-2 text-sm text-primary">{user.email}</div>
                 <MobileMenuItem
+                  to="/dashboard"
                   label="Dashboard"
-                  onClick={() => onViewChange('dashboard')}
-                  isActive={currentView === 'dashboard'}
+                  isActive={isCurrentPath('/dashboard')}
                 />
-                <MobileMenuItem
-                  label="Sign Out"
-                  onClick={onLogout}
-                  isActive={false}
-                />
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onLogout();
+                    navigate('/');
+                  }}
+                  className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background-secondary"
+                >
+                  Sign Out
+                </button>
               </>
             ) : (
               <>
                 <MobileMenuItem
+                  to="/pricing"
                   label="Pricing"
-                  onClick={() => onViewChange('pricing')}
-                  isActive={currentView === 'pricing'}
+                  isActive={isCurrentPath('/pricing')}
                 />
                 <MobileMenuItem
+                  to="/auth"
                   label="Sign In"
-                  onClick={() => onViewChange('auth')}
-                  isActive={currentView === 'auth'}
+                  isActive={isCurrentPath('/auth')}
                 />
               </>
             )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import AuthForm from './components/AuthForm';
 import TokenAnalyzerPage from './TokenAnalyzerPage';
@@ -15,82 +16,54 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsOfServicePage from './components/TermsOfServicePage';
 import { ThemeProvider } from './context/ThemeContext';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState('home');
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Add useEffect for handling auth redirects
+  // Handle auth redirects on first load
   useEffect(() => {
-    if (window.location.pathname.startsWith('/auth')) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const queryParams = new URLSearchParams(window.location.search);
-  
-      const token = 
-        queryParams.get('token') || 
-        hashParams.get('access_token') || 
-        window.location.href.split("token=")[1]?.split("&")[0];
-  
+    if (location.pathname.startsWith('/auth')) {
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const queryParams = new URLSearchParams(location.search);
+
+      const token =
+        queryParams.get('token') ||
+        hashParams.get('access_token') ||
+        (location.search.includes('token=') 
+          ? location.search.split('token=')[1]?.split('&')[0]
+          : null);
+
       const type = queryParams.get('type') || hashParams.get('type');
-  
+
       console.log("Detected token:", token);
       console.log("Detected type:", type);
-  
+
       if (token && type === 'recovery') {
         sessionStorage.setItem('recoveryToken', token);
-        console.log("Recovery token stored and auth view set.");
-  
-        // ✅ Force React to update the state
-        setTimeout(() => setView('auth'), 100);
+        console.log("Recovery token stored.");
       }
     }
-  }, []);
-  
-  
+  }, [location]);
 
-  const handleAuthSuccess = (user) => {
-    setUser(user);
-    setView('home');
-    // Clean up any stored recovery tokens
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+    // Navigate to the attempted protected route if it exists, otherwise go home
+    const intendedPath = location.state?.from || '/';
+    navigate(intendedPath);
     sessionStorage.removeItem('recoveryToken');
   };
 
   const handleLogout = () => {
     setUser(null);
-    setView('home');
-    // Clean up any stored tokens
+    navigate('/');
     sessionStorage.removeItem('recoveryToken');
   };
 
-  const renderContent = () => {
-    switch (view) {
-      case 'home':
-        return <HomePage onGetStarted={() => setView(user ? 'register' : 'auth')} />;
-      case 'auth':
-        return <AuthForm onAuthSuccess={handleAuthSuccess} />;
-      case 'register':
-        return user ? <WalletTrackingPage user={user} /> : <AuthForm onAuthSuccess={handleAuthSuccess} />;
-      case 'analyzer':
-        return <TokenAnalyzerPage />;
-      case 'pricing':
-        return <PricingPage />;
-      case 'about':
-        return <AboutUsPage />;
-      case 'stealth':
-        return user ? <StealthWalletPage user={user} /> : <AuthForm onAuthSuccess={handleAuthSuccess} />;
-      case 'dashboard':
-        return user ? <UserDashboard user={user} /> : <AuthForm onAuthSuccess={handleAuthSuccess} />;
-      case 'portfolio':
-        return user ? <PortfolioViewer /> : <AuthForm onAuthSuccess={handleAuthSuccess} />;
-      case 'refund-policy':
-        return <RefundPolicyPage />;
-      case 'privacy-policy':
-        return <PrivacyPolicyPage />;
-      case 'terms-of-service':
-        return <TermsOfServicePage />;
-      default:
-        return <HomePage onGetStarted={() => setView(user ? 'register' : 'auth')} />;
-    }
+  const handleGetStarted = () => {
+    navigate(user ? '/register' : '/auth');
   };
 
   return (
@@ -98,14 +71,66 @@ function App() {
       <div className="min-h-screen bg-background transition-colors duration-200">
         <Navbar
           user={user}
-          currentView={view}
-          onViewChange={setView}
           onLogout={handleLogout}
         />
 
         <div className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            {renderContent()}
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<HomePage onGetStarted={handleGetStarted} />} />
+              <Route path="/auth" element={<AuthForm onAuthSuccess={handleAuthSuccess} />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/about" element={<AboutUsPage />} />
+              <Route path="/refund-policy" element={<RefundPolicyPage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+
+              {/* Protected Routes */}
+              <Route
+                path="/register"
+                element={
+                  <ProtectedRoute user={user}>
+                    <WalletTrackingPage user={user} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analyzer"
+                element={
+                  <ProtectedRoute user={user}>
+                    <TokenAnalyzerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/stealth"
+                element={
+                  <ProtectedRoute user={user}>
+                    <StealthWalletPage user={user} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute user={user}>
+                    <UserDashboard user={user} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/portfolio"
+                element={
+                  <ProtectedRoute user={user}>
+                    <PortfolioViewer />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Catch all route for non-existent paths */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </div>
         </div>
 
@@ -116,7 +141,7 @@ function App() {
           }}
         />
 
-        <Footer onViewChange={setView} />
+        <Footer />
         
         {/* Large XRYPTT Text */}
         <div 
