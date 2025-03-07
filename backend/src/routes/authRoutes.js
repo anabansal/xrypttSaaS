@@ -1,7 +1,7 @@
 import express from 'express';
 import { supabase } from '../utils/supabase.js';
 import { generateOTP, storeOTP, verifyOTP } from '../services/otpService.js';
-import { sendVerificationEmail,sendEmailNotification } from '../services/emailService.js';
+import { sendVerificationEmail,sendEmailNotification,sendWelcomeEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -74,6 +74,8 @@ router.post('/signup/complete', async (req, res) => {
     
     // Clear pending signup data
     delete req.session.auth.pendingSignup;
+    // Send welcome email
+    await sendWelcomeEmail(email);
     
     // Return both user and session data
     res.status(200).json({

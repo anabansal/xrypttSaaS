@@ -2,6 +2,66 @@ import { Resend } from 'resend';
 import { config, initializeConfig } from '../config/index.js'; // Ensure correct import path
 
 
+const sendWelcomeEmail = async (email) => {
+  try {
+    // Wait for the config to be initialized
+    await initializeConfig();
+
+    // Initialize Resend with the API key from config
+    const resend = new Resend(config.resend.apiKey);
+    
+    const subject = 'Welcome to XRYPTT!';
+    const content = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #333;">Welcome to XRYPTT!</h1>
+        <p>Thank you for joining us. Your account has been successfully created.</p>
+        
+        <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+          <h2 style="color: #333; margin-top: 0;">About Us</h2>
+          <p>We aim to provide transparency and clarity in the cryptocurrency market by offering advanced tools that bridge the gap between complex blockchain data and actionable insights. Our mission is to enable every user to stay ahead in the crypto space, track key market players, and uncover trends that drive significant investment opportunities.</p>
+        </div>
+        
+        <h2 style="color: #333;">What We Offer</h2>
+        <ul style="list-style-type: none; padding: 0;">
+          <li style="margin-bottom: 10px;">
+            <strong>💼 Wallet Tracking</strong>
+            <p>Monitor up to six wallets with real-time updates</p>
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>📊 Portfolio Insights</strong>
+            <p>Access detailed portfolios of token holders</p>
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>🐋 Whale Tracking</strong>
+            <p>Identify and track market-moving players</p>
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>🔒 Privacy Features</strong>
+            <p>Advanced privacy settings for your transactions</p>
+          </li>
+        </ul>
+        
+        <p>We're excited to have you on board!</p>
+        <p>- The XRYPTT Team</p>
+      </div>
+    `;
+    
+    // Send the email
+    await resend.emails.send({
+      from: 'XRYPTT <wallettracker@tixflip.in>',
+      to: email,
+      subject: subject,
+      html: content,
+    });
+
+    console.log(`Welcome email sent successfully to ${email}`);
+  } catch (error) {
+    console.error(`Error sending welcome email:`, error.message);
+    throw new Error(`Failed to send welcome email`);
+  }
+};
+
+
 const formatTransactionDetails = (txn) => {
   const commonDetails = `Transaction Hash: ${txn.hash}
 From: ${txn.from}
@@ -180,4 +240,4 @@ ${transactionDetails}
 };
 
 // Export functions
-export { formatTransactionDetails,sendVerificationEmail, sendEmailNotification,sendTrackingStartedEmail };
+export { formatTransactionDetails,sendVerificationEmail, sendEmailNotification,sendTrackingStartedEmail,sendWelcomeEmail };
