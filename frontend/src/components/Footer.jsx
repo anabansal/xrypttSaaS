@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-const Footer = ({ onViewChange }) => {
+const Footer = () => {
   return (
     <footer style={{paddingBottom:'0px'}} className="bg-background py-16 border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,31 +83,19 @@ const Footer = ({ onViewChange }) => {
             <h3 className="text-lg font-semibold text-primary mb-4">COMPANY</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="#"
-                  onClick={() => onViewChange('refund-policy')}
-                  className="text-gray-600 hover:text-primary"
-                >
+                <Link to="/refund-policy" className="text-gray-600 hover:text-primary">
                   Refund Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
-                  onClick={() => onViewChange('privacy-policy')}
-                  className="text-gray-600 hover:text-primary"
-                >
+                <Link to="/privacy-policy" className="text-gray-600 hover:text-primary">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
-                  onClick={() => onViewChange('terms-of-service')}
-                  className="text-gray-600 hover:text-primary"
-                >
+                <Link to="/terms-of-service" className="text-gray-600 hover:text-primary">
                   Terms of Service
-                </a>
+                </Link>
               </li>
             </ul>
             <div className="mt-8">
