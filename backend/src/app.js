@@ -17,15 +17,17 @@ await initializeConfig();
 // Initialize Express app
 const app = express();
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-secret-key', // Use environment variable in production
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // true in production
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  }));
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000
+  }
+}));
+
   
   // CORS configuration - update to allow credentials
   app.use(cors({
