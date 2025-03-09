@@ -6,6 +6,19 @@ import { sendVerificationEmail,sendEmailNotification,sendWelcomeEmail } from '..
 const router = express.Router();
 
 // Get Current User
+router.get('/user', async (req, res) => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(401).json({ error: 'Not authenticated' });
+  }
+});
+
+// Sign Up Initiation
 router.post('/signup/initiate', async (req, res) => {
   const { email, password } = req.body;
   
@@ -26,18 +39,7 @@ router.post('/signup/initiate', async (req, res) => {
     // Store pending signup data in session
     req.session.auth.pendingSignup = { email, password };
     
-    // Force session save to ensure data is persisted immediately
-    req.session.save(err => {
-      if (err) {
-        console.error('Session save error:', err);
-        return res.status(500).json({ error: 'Failed to save session' });
-      }
-      
-      res.status(200).json({ 
-        message: 'Verification email sent successfully',
-        debug: process.env.NODE_ENV !== 'production' ? { sessionID: req.sessionID } : undefined
-      });
-    });
+    res.status(200).json({ message: 'Verification email sent successfully' });
   } catch (error) {
     console.error('Signup initiation error:', error);
     res.status(500).json({ error: 'Failed to initiate signup' });
@@ -49,17 +51,8 @@ router.post('/signup/complete', async (req, res) => {
   const { email, otp } = req.body;
   
   try {
-    console.log('Session data:', req.session); // Debug log
-    
-    if (!req.session.auth || !req.session.auth.pendingSignup) {
-      return res.status(400).json({ 
-        error: 'No pending signup found',
-        debug: process.env.NODE_ENV !== 'production' ? { 
-          sessionExists: !!req.session,
-          authExists: req.session ? !!req.session.auth : false,
-          sessionID: req.sessionID
-        } : undefined
-      });
+    if (!req.session.auth?.pendingSignup) {
+      return res.status(400).json({ error: 'No pending signup found' });
     }
     
     const pendingSignup = req.session.auth.pendingSignup;
@@ -81,21 +74,13 @@ router.post('/signup/complete', async (req, res) => {
     
     // Clear pending signup data
     delete req.session.auth.pendingSignup;
+    // Send welcome email
+    await sendWelcomeEmail(email);
     
-    // Save session changes
-    req.session.save(async (err) => {
-      if (err) {
-        console.error('Session save error:', err);
-      }
-      
-      // Send welcome email
-      await sendWelcomeEmail(email);
-      
-      // Return both user and session data
-      res.status(200).json({
-        user: data.user,
-        session: data.session
-      });
+    // Return both user and session data
+    res.status(200).json({
+      user: data.user,
+      session: data.session
     });
   } catch (error) {
     console.error('Signup completion error:', error);

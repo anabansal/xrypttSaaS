@@ -30,26 +30,19 @@ export const initiateSignUp = async (email, password) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signup/initiate`, {
       method: 'POST',
-      credentials: 'include', // Ensures cookies are sent with the request
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, password }),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error);
     }
-    
-    const data = await response.json();
-    
-    // For debugging - log the session ID if provided
-    if (data.debug && data.debug.sessionID) {
-      console.log('Session ID from server:', data.debug.sessionID);
-    }
-    
-    return data;
+
+    return await response.json();
   } catch (error) {
     console.error('Error initiating signup:', error);
     throw new Error('Failed to send verification email. Please try again.');
@@ -60,29 +53,25 @@ export const completeSignUp = async (email, otp) => {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/signup/complete`, {
       method: 'POST',
-      credentials: 'include', // Ensures cookies are sent with the request
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email, otp }),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
-      // Log debug info if available
-      if (error.debug) {
-        console.error('Debug info:', error.debug);
-      }
       throw new Error(error.error);
     }
-    
+
     const data = await response.json();
     
     // Store the token if it's included in the response
     if (data.session?.access_token) {
       localStorage.setItem('authToken', data.session.access_token);
     }
-    
+
     return data;
   } catch (error) {
     console.error('Error completing signup:', error);
