@@ -122,7 +122,7 @@ export const initiatePasswordReset = async (email) => {
   const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-  redirectTo: `${FRONTEND_URL}/auth`
+  redirectTo: `${FRONTEND_URL}/authorisation`
 });
 
     

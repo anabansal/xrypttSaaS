@@ -24,29 +24,34 @@ function App() {
   const navigate = useNavigate();
 
   // Handle auth redirects on first load
-  useEffect(() => {
-    if (location.pathname.startsWith('/auth')) {
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const queryParams = new URLSearchParams(location.search);
+ // In your App.js file, modify the useEffect hook that handles auth redirects
 
-      const token =
-        queryParams.get('token') ||
-        hashParams.get('access_token') ||
-        (location.search.includes('token=') 
-          ? location.search.split('token=')[1]?.split('&')[0]
-          : null);
+useEffect(() => {
+  if (location.pathname.startsWith('/authorisation')) {
+    const hashParams = new URLSearchParams(location.hash.substring(1));
+    const queryParams = new URLSearchParams(location.search);
 
-      const type = queryParams.get('type') || hashParams.get('type');
+    const token =
+      queryParams.get('token') ||
+      hashParams.get('access_token') ||
+      (location.search.includes('token=') 
+        ? location.search.split('token=')[1]?.split('&')[0]
+        : null);
 
-      console.log("Detected token:", token);
-      console.log("Detected type:", type);
+    const type = queryParams.get('type') || hashParams.get('type');
 
-      if (token && type === 'recovery') {
-        sessionStorage.setItem('recoveryToken', token);
-        console.log("Recovery token stored.");
-      }
+    console.log("Detected token:", token);
+    console.log("Detected type:", type);
+
+    if (token && type === 'recovery') {
+      sessionStorage.setItem('recoveryToken', token);
+      console.log("Recovery token stored.");
     }
-  }, [location]);
+    
+    // Add this to redirect to auth form
+    navigate('/auth', { state: { from: location.pathname } });
+  }
+}, [location, navigate]); // Make sure to include navigate in dependencies
 
   const handleAuthSuccess = (userData) => {
     setUser(userData);
