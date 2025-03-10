@@ -2,8 +2,6 @@ import express from 'express';
 import session from 'express-session';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { createClient } from 'redis';
-import dotenv from 'dotenv';
 import { config, initializeConfig } from './config/index.js';
 import emailRoutes from './routes/emailRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
@@ -11,40 +9,38 @@ import userRoutes from './routes/userRoutes.js';
 import trackingSystem from './services/walletMonitor.js';
 import authRoutes from './routes/authRoutes.js';
 import balanceRoutes from './routes/balance.js';
+import dotenv from 'dotenv';
 import sitemapRouter from './routes/sitemap.js';
+import { createClient } from 'redis';
+import * as ConnectRedis from 'connect-redis'; // namespace import for ESM
 
 dotenv.config();
 await initializeConfig();
 
-// Dynamic import for connect-redis
-const { default: createRedisStore } = await import('connect-redis');
-const RedisStore = createRedisStore(session);
-
-// Initialize Redis client
+// Create and connect a Redis client
 const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-  legacyMode: false,
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
 redisClient.on('error', (err) => {
   console.error('Redis Client Error:', err);
 });
 
-await redisClient.connect().catch(console.error);
+await redisClient.connect();
 console.log('Redis client connected');
 
-// Initialize Redis store for sessions
-const redisStore = new RedisStore({
-  client: redisClient,
-  prefix: "xryptt:session:",
-});
+// Initialize RedisStore using connect-redis with ESM (accessing its default export)
+const RedisStore = ConnectRedis.default(session);
 
 // Initialize Express app
 const app = express();
 
-// Configure session with Redis
+// Configure session middleware with Redis store
 app.use(session({
-  store: redisStore,
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'xryptt:session:',
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
@@ -52,7 +48,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
   }
 }));
 
