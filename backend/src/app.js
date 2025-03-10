@@ -30,7 +30,8 @@ await redisClient.connect();
 console.log('Redis client connected');
 
 // Initialize RedisStore using connect-redis with ESM (accessing its default export)
-const RedisStore = ConnectRedis.default(session);
+const RedisStore = ConnectRedis(session);
+
 
 // Initialize Express app
 const app = express();
