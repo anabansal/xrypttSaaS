@@ -12,7 +12,8 @@ import balanceRoutes from './routes/balance.js';
 import dotenv from 'dotenv';
 import sitemapRouter from './routes/sitemap.js';
 import { createClient } from 'redis';
-import * as ConnectRedis from 'connect-redis'; // namespace import for ESM
+import connectRedis from 'connect-redis';
+
 
 dotenv.config();
 await initializeConfig();
@@ -30,7 +31,7 @@ await redisClient.connect();
 console.log('Redis client connected');
 
 // Initialize RedisStore using connect-redis with ESM (accessing its default export)
-const RedisStore = ConnectRedis(session);
+const RedisStore = connectRedis(session);
 
 
 // Initialize Express app
