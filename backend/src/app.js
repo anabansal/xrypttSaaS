@@ -12,8 +12,7 @@ import balanceRoutes from './routes/balance.js';
 import dotenv from 'dotenv';
 import sitemapRouter from './routes/sitemap.js';
 import { createClient } from 'redis';
-import connectRedis from 'connect-redis';
-
+import { createRequire } from 'module'; // <-- Import createRequire
 
 dotenv.config();
 await initializeConfig();
@@ -30,7 +29,10 @@ redisClient.on('error', (err) => {
 await redisClient.connect();
 console.log('Redis client connected');
 
-// Initialize RedisStore using connect-redis with ESM (accessing its default export)
+// Use createRequire to load connect-redis as CommonJS
+const require = createRequire(import.meta.url);
+const connectRedis = require('connect-redis');
+// Create the RedisStore by passing session
 const RedisStore = connectRedis(session);
 
 
