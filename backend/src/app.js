@@ -3,7 +3,7 @@ import session from 'express-session';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { createClient } from 'redis';
-import * as connectRedis from 'connect-redis';
+import dotenv from 'dotenv';
 import { config, initializeConfig } from './config/index.js';
 import emailRoutes from './routes/emailRoutes.js';
 import walletRoutes from './routes/walletRoutes.js';
@@ -11,14 +11,14 @@ import userRoutes from './routes/userRoutes.js';
 import trackingSystem from './services/walletMonitor.js';
 import authRoutes from './routes/authRoutes.js';
 import balanceRoutes from './routes/balance.js';
-import dotenv from 'dotenv';
 import sitemapRouter from './routes/sitemap.js';
+
+// Dynamic import for connect-redis
+const connectRedisModule = await import('connect-redis');
+const RedisStore = connectRedisModule.default(session);
 
 dotenv.config();
 await initializeConfig();
-
-// Get the Redis store constructor
-const RedisStore = connectRedis(session);
 
 // Initialize Redis client
 const redisClient = createClient({
