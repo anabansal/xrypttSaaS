@@ -33,7 +33,7 @@ console.log('Redis client connected');
 const app = express();
 
 // Configure session middleware with Redis store
-
+app.set('trust proxy', 1);
 
 // CORS configuration
 app.use(cors({
@@ -43,7 +43,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));
-app.set('trust proxy', 1);
+
 app.use(session({
   store: new RedisStore({
     client: redisClient,
@@ -57,8 +57,7 @@ app.use(session({
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    // Don't set domain in development, but do in production
-    ...(process.env.NODE_ENV === 'production' && { domain: '.xryptt.com' }) // Note the dot prefix to include subdomains
+    
   }
 }));
 
