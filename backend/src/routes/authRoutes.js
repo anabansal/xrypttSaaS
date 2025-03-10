@@ -39,6 +39,15 @@ router.post('/signup/initiate', async (req, res) => {
     // Store pending signup data in session
     req.session.auth.pendingSignup = { email, password };
     
+    // Save the session explicitly to ensure it's written to Redis
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+    
+    console.log('Session saved with pending signup:', email);
     res.status(200).json({ message: 'Verification email sent successfully' });
   } catch (error) {
     console.error('Signup initiation error:', error);
@@ -46,16 +55,20 @@ router.post('/signup/initiate', async (req, res) => {
   }
 });
 
-// Sign Up Completion
+// Modified signup completion route
 router.post('/signup/complete', async (req, res) => {
   const { email, otp } = req.body;
   
   try {
+    console.log('Session data on complete:', req.session);
+    
     if (!req.session.auth?.pendingSignup) {
+      console.error('No pending signup found in session for:', email);
       return res.status(400).json({ error: 'No pending signup found' });
     }
     
     const pendingSignup = req.session.auth.pendingSignup;
+    console.log('Found pending signup for:', pendingSignup.email);
     
     if (pendingSignup.email !== email) {
       return res.status(400).json({ error: 'Email mismatch' });
@@ -74,6 +87,15 @@ router.post('/signup/complete', async (req, res) => {
     
     // Clear pending signup data
     delete req.session.auth.pendingSignup;
+    
+    // Save the session explicitly again after removal
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+    
     // Send welcome email
     await sendWelcomeEmail(email);
     
