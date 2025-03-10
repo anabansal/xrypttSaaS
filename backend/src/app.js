@@ -33,6 +33,17 @@ console.log('Redis client connected');
 const app = express();
 
 // Configure session middleware with Redis store
+
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://www.xryptt.com', 'https://xryptt.com', 'https://xrypttsaas-1.onrender.com', 'https://xrypttsaas.onrender.com']
+    : 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
+app.set('trust proxy', 1);
 app.use(session({
   store: new RedisStore({
     client: redisClient,
@@ -42,20 +53,13 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // true in production
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    // Don't set domain in development, but do in production
+    ...(process.env.NODE_ENV === 'production' && { domain: '.xryptt.com' }) // Note the dot prefix to include subdomains
   }
-}));
-
-// CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://www.xryptt.com', 'https://xrypttsaas-1.onrender.com', 'https://xryptt.com']
-    : 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
 }));
 
 // Parse JSON requests
