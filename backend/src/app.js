@@ -13,12 +13,12 @@ import authRoutes from './routes/authRoutes.js';
 import balanceRoutes from './routes/balance.js';
 import sitemapRouter from './routes/sitemap.js';
 
-// Dynamic import for connect-redis
-const connectRedisModule = await import('connect-redis');
-const RedisStore = connectRedisModule.default(session);
-
 dotenv.config();
 await initializeConfig();
+
+// Dynamic import for connect-redis
+const { default: createRedisStore } = await import('connect-redis');
+const RedisStore = createRedisStore(session);
 
 // Initialize Redis client
 const redisClient = createClient({
