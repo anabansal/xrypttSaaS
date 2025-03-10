@@ -25,9 +25,9 @@ const AuthForm = ({ onAuthSuccess }) => {
       window.location.hash.split('access_token=')[1]?.split('&')[0];
 
     // Check if this is a recovery flow
-    const type = queryParams.get('type') || hashParams.get('type');
+    // const type = queryParams.get('type') || hashParams.get('type');
 
-    if (token && type === 'recovery') {
+    if (token) {
       setResetToken(token);
       setMode('reset');
       // Clean up the URL
