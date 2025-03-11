@@ -1,4 +1,5 @@
 import React from 'react';
+import Payment from "./payment.jsx";
 
 const PricingPage = () => {
   return (
@@ -46,6 +47,7 @@ const PricingPage = () => {
               </ul>
             </div>
             <div className="px-8 py-5 mt-auto">
+              <Payment />
               <button className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors">
                 Get Started
               </button>
