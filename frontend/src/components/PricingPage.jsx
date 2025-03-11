@@ -1,7 +1,48 @@
 import React from 'react';
-import Payment from "./payment.jsx";
+import { useNavigate } from 'react-router-dom';
+import { initializePaddle } from "@paddle/paddle-js";
+import { useState, useEffect } from 'react';
 
 const PricingPage = () => {
+  const [paddle, setPaddle] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    initializePaddle({
+      environment: "production",
+      token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
+    }).then((paddleInstance) => setPaddle(paddleInstance));
+  }, []);
+
+  const handleCheckout = (priceId) => {
+    if (!paddle) {
+      console.error("Paddle not initialized");
+      return;
+    }
+
+    // Check if user is authenticated by looking for auth token
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      // Redirect to auth page if not authenticated
+      navigate('/auth', { state: { from: '/pricing' } });
+      return;
+    }
+
+    paddle.Checkout.open({
+      items: [
+        {
+          priceId: priceId,
+          quantity: 1,
+        },
+      ],
+      settings: {
+        displayMode: "overlay",
+        theme: "dark",
+        successUrl: "https://xryptt.com/",
+      },
+    });
+  };
+
   return (
     <div className="py-12 bg-gradient-to-b from-gray-50 to-white">
       <div className="text-center mb-16">
@@ -47,8 +88,10 @@ const PricingPage = () => {
               </ul>
             </div>
             <div className="px-8 py-5 mt-auto">
-              <Payment />
-              <button className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => handleCheckout("pri_01jnrexyz6v8dy126m9a9g3mfw")}
+                className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
+              >
                 Get Started
               </button>
             </div>
@@ -91,7 +134,10 @@ const PricingPage = () => {
               </ul>
             </div>
             <div className="px-8 py-5 mt-auto">
-              <button className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => handleCheckout("pri_01jnrffepknte5yy0ymn1xwd6s")}
+                className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
+              >
                 Subscribe Now
               </button>
             </div>
@@ -131,13 +177,24 @@ const PricingPage = () => {
               </ul>
             </div>
             <div className="px-8 py-5 mt-auto">
-              <button className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors">
+              <button 
+                onClick={() => handleCheckout("pri_01jnrfmd82v596b1jytnm5bkm1")}
+                className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
+              >
                 Get Protected
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-          {/* Whale Mimic Plan */}
+export default PricingPage;
+
+
+{/* Whale Mimic Plan */}
           {/* <div className="bg-black rounded-3xl shadow-2xl overflow-hidden text-white transform hover:scale-105 transition-transform duration-300 flex flex-col">
             <div className="px-8 py-10 flex-grow">
               <h3 className="text-2xl font-bold">Whale Mimic</h3>
@@ -179,10 +236,3 @@ const PricingPage = () => {
               </button>
             </div>
           </div> */}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default PricingPage;
