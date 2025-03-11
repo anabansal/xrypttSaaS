@@ -7,7 +7,7 @@ export default function Payment() {
 
   useEffect(() => {
     initializePaddle({
-      environment: "sandbox",
+      environment: "production",
       token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
     }).then((paddleInstance) => setPaddle(paddleInstance));
   }, []);
