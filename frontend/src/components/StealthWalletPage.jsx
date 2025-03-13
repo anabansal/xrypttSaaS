@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabase1.js';
 import { validateWalletAddress } from '../utils/validation';
 import { useToast } from '../hooks/useToast';
 import { LoadingSpinner } from './LoadingSpinner';
-
-// Maximum number of wallets a user can add
-const MAX_WALLETS_PER_USER = 5;
+import { getStealthWallets, addStealthWallet, removeStealthWallet } from '../services/stealthService';
 
 const StealthWalletPage = ({ user }) => {
   const [walletAddress, setWalletAddress] = useState('');
@@ -21,16 +18,9 @@ const StealthWalletPage = ({ user }) => {
     }
   }, [user]);
 
-  // Load the user's stealth wallets
   const loadStealthWallets = async () => {
     try {
-      const { data, error } = await supabase
-        .from('stealth_wallets')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await getStealthWallets();
       setStealthWallets(data || []);
     } catch (error) {
       console.error('Error loading stealth wallets:', error);
@@ -40,7 +30,6 @@ const StealthWalletPage = ({ user }) => {
     }
   };
 
-  // Handle form submission to add a new wallet
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -50,51 +39,22 @@ const StealthWalletPage = ({ user }) => {
     }
 
     try {
-      // Check the number of existing wallets for the user
-      const { count, error: countError } = await supabase
-        .from('stealth_wallets')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-
-      if (countError) throw countError;
-
-      // Enforce the maximum wallet limit
-      if (count >= MAX_WALLETS_PER_USER) {
-        showError(`You can only add up to ${MAX_WALLETS_PER_USER} wallets.`);
-        return;
-      }
-
-      // Insert the new wallet
-      const { error } = await supabase
-        .from('stealth_wallets')
-        .insert([
-          {
-            user_id: user.id,
-            wallet_address: walletAddress.toLowerCase()
-          }
-        ]);
-
-      if (error) throw error;
-
+      await addStealthWallet(walletAddress);
       showSuccess('Wallet added to stealth list');
       setWalletAddress('');
-      loadStealthWallets(); // Reload the list to reflect the new addition
+      loadStealthWallets();
     } catch (error) {
-      console.error('Error adding wallet:', error);
-      showError('Failed to add wallet to stealth list');
+      if (error.message?.includes('Subscription limit reached')) {
+        showError('You have reached your plan\'s stealth wallet limit. Please upgrade to Privacy Shield plan.');
+      } else {
+        showError('Failed to add wallet to stealth list');
+      }
     }
   };
 
-  // Handle removal of a wallet
   const handleRemove = async (walletAddress) => {
     try {
-      const { error } = await supabase
-        .from('stealth_wallets')
-        .delete()
-        .eq('wallet_address', walletAddress);
-
-      if (error) throw error;
-
+      await removeStealthWallet(walletAddress);
       showSuccess('Wallet removed from stealth list');
       setStealthWallets(stealthWallets.filter(wallet => wallet.wallet_address !== walletAddress));
     } catch (error) {
@@ -103,7 +63,6 @@ const StealthWalletPage = ({ user }) => {
     }
   };
 
-  // Render a message if the user is not signed in
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -115,7 +74,6 @@ const StealthWalletPage = ({ user }) => {
     );
   }
 
-  // Show a loading spinner while data is being fetched
   if (loading) {
     return <LoadingSpinner />;
   }
