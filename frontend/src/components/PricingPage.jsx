@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initializePaddle } from "@paddle/paddle-js";
 import { useState, useEffect } from 'react';
+import {supabase} from '../utils/supabase1.js'
 
 const PricingPage = () => {
   const [paddle, setPaddle] = useState(null);
