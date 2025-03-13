@@ -1,12 +1,14 @@
 import express from 'express';
+import { getSupabaseClient } from '../utils/supabase.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { checkSubscriptionLimits } from '../utils/subscriptionUtils.js';
-import { supabase } from '../utils/supabase.js';
 
 const router = express.Router();
 
 // Get stealth wallets for a user
 router.get('/', authenticate, async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const supabase = getSupabaseClient(token);
   try {
     const { data, error } = await supabase
       .from('stealth_wallets')
@@ -24,6 +26,8 @@ router.get('/', authenticate, async (req, res) => {
 
 // Add a new stealth wallet
 router.post('/', authenticate, async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const supabase = getSupabaseClient(token);
   try {
     const { walletAddress } = req.body;
 
@@ -36,7 +40,7 @@ router.post('/', authenticate, async (req, res) => {
     if (countError) throw countError;
 
     // Check subscription limits
-    const canAddWallet = await checkSubscriptionLimits(req.user.id, 'stealth_wallets', count || 0);
+    const canAddWallet = await checkSubscriptionLimits(supabase,req.user.id, 'stealth_wallets', count || 0);
     if (!canAddWallet) {
       return res.status(403).json({ 
         error: 'Subscription limit reached for stealth wallets. Please upgrade to Privacy Shield plan.' 
@@ -60,6 +64,8 @@ router.post('/', authenticate, async (req, res) => {
 
 // Remove a stealth wallet
 router.delete('/:address', authenticate, async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const supabase = getSupabaseClient(token);
   try {
     const { address } = req.params;
     const { error } = await supabase

@@ -4,7 +4,7 @@ import { useToast } from '../hooks/useToast';
 import { registerUser } from '../utils/api';
 import { DEFAULT_WALLET } from '../utils/constants';
 
-const RegistrationForm = ({ user, onTrackingStarted }) => {
+const RegistrationForm = ({ user, onTrackingStarted, onLimitError }) => {
   const [walletAddress, setWalletAddress] = useState('');
   const [nickname, setNickname] = useState('');
   const [wallets, setWallets] = useState([]);
@@ -47,7 +47,11 @@ const RegistrationForm = ({ user, onTrackingStarted }) => {
       showSuccess('Registration successful!');
       onTrackingStarted();
     } catch (error) {
-      showError(error.message || 'Registration failed');
+      if (error.message?.includes('Subscription limit reached')) {
+        onLimitError('You have reached your plan\'s wallet limit. Please upgrade your subscription.');
+      } else {
+        showError(error.message || 'Registration failed');
+      }
     }
   };
 

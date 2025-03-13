@@ -10,7 +10,7 @@ const PricingPage = () => {
 
   useEffect(() => {
     initializePaddle({
-      environment: "production",
+      environment: "sandbox",
       token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
     }).then((paddleInstance) => setPaddle(paddleInstance));
   }, []);

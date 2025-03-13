@@ -6,8 +6,19 @@ import SettingsForm from './SettingsForm';
 const WalletTrackingPage = ({ user }) => {
   const [activeTab, setActiveTab] = useState('register');
   const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('success');
 
   const handleTrackingStarted = () => {
+    setNotificationMessage('Wallet Tracking Has Started');
+    setNotificationType('success');
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3000);
+  };
+
+  const handleLimitError = (message) => {
+    setNotificationMessage(message);
+    setNotificationType('error');
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 3000);
   };
@@ -67,24 +78,36 @@ const WalletTrackingPage = ({ user }) => {
         {/* Content Section */}
         <div className="py-8">
           {activeTab === 'register' ? (
-            <RegistrationForm user={user} onTrackingStarted={handleTrackingStarted} />
+            <RegistrationForm 
+              user={user} 
+              onTrackingStarted={handleTrackingStarted}
+              onLimitError={handleLimitError}
+            />
           ) : (
             <>
               <h2 className="text-2xl font-semibold text-primary mb-6">
                 Manage Your Tracked Wallets
               </h2>
-              <SettingsForm email={user.email} onTrackingStarted={handleTrackingStarted} />
+              <SettingsForm 
+                email={user.email} 
+                onTrackingStarted={handleTrackingStarted}
+                onLimitError={handleLimitError}
+              />
             </>
           )}
         </div>
       </div>
 
-      {/* Tracking Started Notification */}
+      {/* Notification Modal */}
       {showNotification && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white/90 backdrop-blur-sm px-8 py-4 rounded-lg shadow-lg">
-            <p className="text-2xl font-bold text-primary">
-              Wallet Tracking Has Started
+          <div className={`${
+            notificationType === 'success' ? 'bg-white/90' : 'bg-red-50/90'
+          } backdrop-blur-sm px-8 py-4 rounded-lg shadow-lg`}>
+            <p className={`text-2xl font-bold ${
+              notificationType === 'success' ? 'text-primary' : 'text-red-600'
+            }`}>
+              {notificationMessage}
             </p>
           </div>
         </div>
