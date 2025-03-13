@@ -2,24 +2,16 @@ import express from 'express';
 import { getSupabaseClient } from '../utils/supabase.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 import { trackWalletsContinuously } from '../services/walletMonitor.js';
-import { checkSubscriptionLimits } from '../utils/subscriptionUtils.js';
 
 const router = express.Router();
 
+// 🔹 Register or Update a User
 router.post('/register', authenticate, async (req, res) => {
     const { email, wallets, checkInterval } = req.body;
     const token = req.headers.authorization?.split(' ')[1];
     const supabase = getSupabaseClient(token);
 
     try {
-        // Check subscription limits
-        const canAddWallets = await checkSubscriptionLimits(supabase ,req.user.id, 'tracked_wallets', wallets.length);
-        if (!canAddWallets) {
-            return res.status(403).json({ 
-                error: 'Subscription limit reached for tracked wallets' 
-            });
-        }
-
         // Check if user exists
         const { data: existingUser, error: fetchError } = await supabase
             .from('users')
@@ -33,15 +25,8 @@ router.post('/register', authenticate, async (req, res) => {
 
         let result;
         if (existingUser) {
+            // Merge new wallets with existing ones
             const updatedWallets = Array.from(new Set([...existingUser.wallets, ...wallets]));
-            
-            // Check limits for total wallets after merge
-            const canAddTotal = await checkSubscriptionLimits(supabase ,req.user.id, 'tracked_wallets', updatedWallets.length);
-            if (!canAddTotal) {
-                return res.status(403).json({ 
-                    error: 'Subscription limit reached for tracked wallets' 
-                });
-            }
 
             result = await supabase
                 .from('users')
@@ -54,6 +39,7 @@ router.post('/register', authenticate, async (req, res) => {
                 .select()
                 .single();
         } else {
+            // Insert new user
             result = await supabase
                 .from('users')
                 .insert([
@@ -69,8 +55,7 @@ router.post('/register', authenticate, async (req, res) => {
         }
 
         if (result.error) throw result.error;
-        
-        trackWalletsContinuously(email, supabase, false).catch((err) =>
+        trackWalletsContinuously(email,supabase, false).catch((err) =>
             console.error(`Error starting wallet tracking for ${email}:`, err)
         );
 
@@ -161,5 +146,6 @@ router.put('/settings', authenticate, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 export default router;

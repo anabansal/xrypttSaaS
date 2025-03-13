@@ -9,8 +9,6 @@ import userRoutes from './routes/userRoutes.js';
 import trackingSystem from './services/walletMonitor.js';
 import authRoutes from './routes/authRoutes.js';
 import balanceRoutes from './routes/balance.js';
-import webhookRoutes from './routes/webhookRoutes.js';
-import stealthRoutes from './routes/stealthRoutes.js';
 import dotenv from 'dotenv';
 import sitemapRouter from './routes/sitemap.js';
 import { createClient } from 'redis';
@@ -55,10 +53,11 @@ app.use(session({
   resave: false,
   saveUninitialized: true,
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // true in production
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    
   }
 }));
 
@@ -71,14 +70,13 @@ app.use('/api/emails', emailRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/webhooks', webhookRoutes);
-app.use('/api/stealth', stealthRoutes);
-app.use('/', sitemapRouter);
 
 // Health check route
 app.get('/', (req, res) => {
   res.status(200).send('Backend is running successfully!');
 });
+
+app.use('/', sitemapRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -104,19 +102,24 @@ async function startServer() {
 }
 
 startServer();
-
 const signals = ['SIGINT', 'SIGTERM', 'SIGQUIT'];
 
 async function gracefulShutdown(signal) {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
   
   try {
+    // Close Redis session store client
     console.log('Closing main Redis client...');
     await redisClient.quit();
     console.log('Main Redis client closed successfully');
     
+    // Import and call OTP service shutdown 
     const otpService = await import('./services/otpService.js');
     await otpService.closeConnection();
+    
+    // Additional cleanup (if needed)
+    // - Close database connections
+    // - Cancel any pending tasks
     
     console.log('All connections closed. Shutting down...');
     process.exit(0);
@@ -126,15 +129,18 @@ async function gracefulShutdown(signal) {
   }
 }
 
+// Register shutdown handlers
 signals.forEach(signal => {
   process.on(signal, () => gracefulShutdown(signal));
 });
 
+// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   gracefulShutdown('uncaughtException');
 });
 
+// Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Promise Rejection:', reason);
   gracefulShutdown('unhandledRejection');

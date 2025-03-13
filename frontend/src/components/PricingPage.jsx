@@ -14,34 +14,55 @@ const PricingPage = () => {
     }).then((paddleInstance) => setPaddle(paddleInstance));
   }, []);
 
-  const handleCheckout = (priceId) => {
-    if (!paddle) {
-      console.error("Paddle not initialized");
-      return;
-    }
+// In your PricingPage component
+const handleCheckout = (priceId) => {
+  if (!paddle) {
+    console.error("Paddle not initialized");
+    return;
+  }
 
-    // Check if user is authenticated by looking for auth token
-    const authToken = localStorage.getItem('authToken');
-    if (!authToken) {
-      // Redirect to auth page if not authenticated
-      navigate('/auth', { state: { from: '/pricing' } });
-      return;
-    }
+  // Check if user is authenticated by looking for auth token
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) {
+    // Redirect to auth page if not authenticated
+    navigate('/auth', { state: { from: '/pricing' } });
+    return;
+  }
 
-    paddle.Checkout.open({
-      items: [
-        {
-          priceId: priceId,
-          quantity: 1,
+  // Get the current user details from Supabase
+  const fetchUserDetails = async () => {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser(authToken);
+      if (error) throw error;
+      
+      // Now you have the user's ID
+      const userId = user.id;
+      
+      // Open Paddle checkout with the customer ID
+      paddle.Checkout.open({
+        items: [
+          {
+            priceId: priceId,
+            quantity: 1,
+          },
+        ],
+        customer: {
+          id: userId, // Supabase User ID
         },
-      ],
-      settings: {
-        displayMode: "overlay",
-        theme: "dark",
-        successUrl: "https://xryptt.com/",
-      },
-    });
+        passthrough: JSON.stringify({ supabaseUserId: userId }), // Pass custom user ID
+        settings: {
+          displayMode: "overlay",
+          theme: "dark",
+          successUrl: "https://xryptt.com/",
+        },
+      });
+    } catch (err) {
+      console.error("Failed to get user details:", err);
+    }
   };
+  
+  fetchUserDetails();
+};
 
   return (
     <div className="py-12 bg-gradient-to-b from-gray-50 to-white">
