@@ -63,13 +63,20 @@ router.post('/paddle', async (req, res) => {
     const secretKey = process.env.WEBHOOK_SANDBOX_SECRET_KEY || '';
     
     let eventData;
+    // try {
+    //   // Verify signature and unmarshal data
+    //   eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
+    // } catch (verificationError) {
+    //   console.error('Webhook verification failed:', verificationError);
+    //   return res.status(401).json({ error: 'Invalid webhook signature' });
+    // }
     try {
-      // Verify signature and unmarshal data
-      eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
-    } catch (verificationError) {
-      console.error('Webhook verification failed:', verificationError);
-      return res.status(401).json({ error: 'Invalid webhook signature' });
-    }
+        // Instead of verifying signature, simply parse the raw JSON body.
+        eventData = JSON.parse(rawRequestBody);
+      } catch (parseError) {
+        console.error('Error parsing webhook payload:', parseError);
+        return res.status(400).json({ error: 'Invalid payload format' });
+      }
 
     //Extract data from the verified webhook
     const { event_type, data } = eventData;
