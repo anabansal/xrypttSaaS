@@ -72,8 +72,8 @@ router.post('/paddle', async (req, res) => {
     }
 
     //Extract data from the verified webhook
-    const { eventType, data } = eventData;
-    console.log(`Processing webhook event: ${eventType}`);
+    const { event_type, data } = eventData;
+    console.log(`Processing webhook event: ${event_type}`);
     
     // Get the customer ID from the data
     const paddleCustomerId = data.customer_id;
@@ -102,12 +102,12 @@ router.post('/paddle', async (req, res) => {
 
     // Process webhook asynchronously
     (async () => {
-      console.log(`Starting async processing for event: ${eventType}`);
+      console.log(`Starting async processing for event: ${event_type}`);
       try {
-        switch (eventType) {
+        switch (event_type) {
           case 'subscription.created':
           case 'subscription.updated':
-            console.log(`Processing ${eventType} for user ${supabaseUserId}, subscription ${subscription_id}`);
+            console.log(`Processing ${event_type} for user ${supabaseUserId}, subscription ${subscription_id}`);
             // Update or insert subscription with both Supabase and Paddle user IDs
             await supabaseAdmin
               .from('subscriptions')
@@ -122,7 +122,7 @@ router.post('/paddle', async (req, res) => {
               }, {
                 onConflict: 'user_id, subscription_id'
               });
-            console.log(`Database updated for ${eventType}`);
+            console.log(`Database updated for ${event_type}`);
 
             // Get user email for tracking management using Supabase user ID
             const { data: userData, error } = await supabaseAdmin
@@ -151,7 +151,7 @@ router.post('/paddle', async (req, res) => {
 
           case 'subscription.canceled':
           case 'subscription.expired':
-            console.log(`Processing ${eventType} for user ${supabaseUserId}, subscription ${subscription_id}`);
+            console.log(`Processing ${event_type} for user ${supabaseUserId}, subscription ${subscription_id}`);
             // Update subscription status to cancelled
             await supabaseAdmin
               .from('subscriptions')
@@ -160,7 +160,7 @@ router.post('/paddle', async (req, res) => {
                 updated_at: new Date().toISOString()
               })
               .match({ subscription_id });
-            console.log(`Database updated for ${eventType}`);
+            console.log(`Database updated for ${event_type}`);
 
             // Get user email for tracking management using Supabase user ID
             const { data: cancelledUserData, error: cancelledError } = await supabaseAdmin
@@ -175,7 +175,7 @@ router.post('/paddle', async (req, res) => {
             }
 
             if (cancelledUserData) {
-              console.log(`Stopping wallet tracking for ${cancelledUserData.email} due to ${eventType}`);
+              console.log(`Stopping wallet tracking for ${cancelledUserData.email} due to ${event_type}`);
               // Stop tracking when subscription is cancelled
               await stopWalletTracking(cancelledUserData.email, supabaseAdmin, true);
               console.log('Wallet tracking stopped successfully');
@@ -183,9 +183,9 @@ router.post('/paddle', async (req, res) => {
             break;
 
           default:
-            console.log(`Unhandled webhook event: ${eventType}`);
+            console.log(`Unhandled webhook event: ${event_type}`);
         }
-        console.log(`Completed processing ${eventType} webhook event`);
+        console.log(`Completed processing ${event_type} webhook event`);
       } catch (processingError) {
         console.error('Async webhook processing error:', processingError);
       }
