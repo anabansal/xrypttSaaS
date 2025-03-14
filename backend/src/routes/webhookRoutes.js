@@ -57,22 +57,22 @@ router.use('/paddle', express.raw({ type: 'application/json' }));
 router.post('/paddle', async (req, res) => {
   console.log('Received Paddle webhook');
   try {
-    // Get the signature from headers
-    // const signature = req.headers['paddle-signature'] || '';
-    // const rawRequestBody = req.body.toString();
-    // const secretKey = process.env.WEBHOOK_SECRET_KEY || '';
+    //Get the signature from headers
+    const signature = req.headers['paddle-signature'] || '';
+    const rawRequestBody = req.body.toString();
+    const secretKey = process.env.WEBHOOK_SANDBOX_SECRET_KEY || '';
     
-    // let eventData;
-    // try {
-    //   // Verify signature and unmarshal data
-    //   eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
-    // } catch (verificationError) {
-    //   console.error('Webhook verification failed:', verificationError);
-    //   return res.status(401).json({ error: 'Invalid webhook signature' });
-    // }
+    let eventData;
+    try {
+      // Verify signature and unmarshal data
+      eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
+    } catch (verificationError) {
+      console.error('Webhook verification failed:', verificationError);
+      return res.status(401).json({ error: 'Invalid webhook signature' });
+    }
 
-    // Extract data from the verified webhook
-    const { eventType, data } = req.body;
+    //Extract data from the verified webhook
+    const { eventType, data } = eventData;
     console.log(`Processing webhook event: ${eventType}`);
     
     // Get the customer ID from the data
