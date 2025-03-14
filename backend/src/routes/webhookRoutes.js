@@ -70,7 +70,7 @@ router.post('/paddle', async (req, res) => {
     // }
 
     // Extract data from the verified webhook
-    const { eventType, data } = eventData;
+    const { eventType, data } = req.body;
     
     // Get the customer ID from the data
     const paddleCustomerId = data.customer_id;
