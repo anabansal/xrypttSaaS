@@ -51,7 +51,7 @@ const verifyPaddleIP = (req, res, next) => {
 router.use('/paddle', express.raw({ type: 'application/json' }));
 
 // Apply IP verification middleware
-router.use('/paddle', verifyPaddleIP);
+//router.use('/paddle', verifyPaddleIP);
 
 router.post('/paddle', async (req, res) => {
   try {
