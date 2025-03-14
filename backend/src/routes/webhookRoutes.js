@@ -1,63 +1,63 @@
 import express from 'express';
 import { supabaseAdmin } from '../utils/supabaseAdmin.js';
-import crypto from 'crypto';
 import { stopWalletTracking, trackWalletsContinuously } from '../services/walletMonitor.js';
+import { Paddle } from '@paddle/paddle-node-sdk';
 
 const router = express.Router();
+const paddle = new Paddle(process.env.PADDLE_API_KEY);
 
-// Verify Paddle webhook signature using RSA-SHA1
-const verifyPaddleWebhook = (req) => {
-  return true;
-  const publicKey = process.env.PADDLE_PUBLIC_KEY;
-  if (!publicKey) {
-    console.error('Paddle public key not set in environment variables.');
-    return false;
-  }
-  
-  // Remove the p_signature from the payload
-  const { p_signature, ...rest } = req.body;
-  if (!p_signature) {
-    return false;
-  }
-  
-  // Create a string to verify: sort the keys alphabetically and concatenate as key=value pairs
-  const sortedKeys = Object.keys(rest).sort();
-  const stringToVerify = sortedKeys.map(key => `${key}=${rest[key]}`).join('&');
-
-  const verifier = crypto.createVerify('sha1');
-  verifier.update(stringToVerify);
-  verifier.end();
-
-  // Convert signature from Base64 and verify
-  const signatureBuffer = Buffer.from(p_signature, 'base64');
-  return verifier.verify(publicKey, signatureBuffer);
-};
+// Express middleware to parse raw body for webhook verification
+router.use('/paddle', express.raw({ type: 'application/json' }));
 
 router.post('/paddle', async (req, res) => {
   try {
-    // Verify webhook signature
-    if (!verifyPaddleWebhook(req)) {
+    // Get the signature from headers
+    const signature = req.headers['paddle-signature'] || '';
+    const rawRequestBody = req.body.toString();
+    const secretKey = process.env.WEBHOOK_SECRET_KEY || '';
+    
+    let eventData;
+    try {
+      // Verify signature and unmarshal data
+      eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
+    } catch (verificationError) {
+      console.error('Webhook verification failed:', verificationError);
       return res.status(401).json({ error: 'Invalid webhook signature' });
     }
 
-    // Destructure payload fields
-    const { alert_name, subscription_id, status, subscription_plan_id, user_id, passthrough, event_time } = req.body;
+    // Extract data from the verified webhook
+    const { eventType, data } = eventData;
+    
+    // Get the customer ID from the data
+    const paddleCustomerId = data.customer_id;
+    
+    // Extract subscription information
+    const subscription_id = data.id;
+    const status = data.status;
+    
+    // Get the first item's price ID as the plan ID
+    const subscription_plan_id = data.items[0].price.id;
+    
+    // Get next billing date as period end
+    const event_time = data.next_billed_at || new Date().toISOString();
+    
+    // Extract supabaseUserId from custom_data
+    if (!data.custom_data || !data.custom_data.supabaseUserId) {
+      console.error('No supabaseUserId found in custom_data');
+      return res.status(400).json({ error: 'Missing required user data' });
+    }
+    
+    const supabaseUserId = data.custom_data.supabaseUserId;
 
-    // Parse passthrough to get the Supabase user ID
-    const { supabaseUserId } = JSON.parse(passthrough);
-
-    // Here, the Paddle generated user ID is stored in `user_id`
-    const paddleUserId = user_id;
-
-    switch (alert_name) {
-      case 'subscription_created':
-      case 'subscription_updated':
+    switch (eventType) {
+      case 'subscription.created':
+      case 'subscription.updated':
         // Update or insert subscription with both Supabase and Paddle user IDs
         await supabaseAdmin
           .from('subscriptions')
           .upsert({
             user_id: supabaseUserId,
-            paddle_user_id: paddleUserId,
+            paddle_user_id: paddleCustomerId,
             subscription_id,
             plan_id: subscription_plan_id,
             status,
@@ -88,8 +88,8 @@ router.post('/paddle', async (req, res) => {
         }
         break;
 
-      case 'subscription_cancelled':
-      case 'subscription_expired':
+      case 'subscription.canceled':
+      case 'subscription.expired':
         // Update subscription status to cancelled
         await supabaseAdmin
           .from('subscriptions')
@@ -118,7 +118,7 @@ router.post('/paddle', async (req, res) => {
         break;
 
       default:
-        console.log(`Unhandled webhook event: ${alert_name}`);
+        console.log(`Unhandled webhook event: ${eventType}`);
     }
 
     res.json({ success: true });
