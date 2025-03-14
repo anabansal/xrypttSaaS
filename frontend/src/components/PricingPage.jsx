@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initializePaddle } from "@paddle/paddle-js";
 import { useState, useEffect } from 'react';
-import {supabase} from '../utils/supabase1.js'
+import { supabase } from '../utils/supabase1.js';
 
 const PricingPage = () => {
   const [paddle, setPaddle] = useState(null);
@@ -15,55 +15,57 @@ const PricingPage = () => {
     }).then((paddleInstance) => setPaddle(paddleInstance));
   }, []);
 
-// In your PricingPage component
-const handleCheckout = (priceId) => {
-  if (!paddle) {
-    console.error("Paddle not initialized");
-    return;
-  }
-
-  // Check if user is authenticated by looking for auth token
-  const authToken = localStorage.getItem('authToken');
-  if (!authToken) {
-    // Redirect to auth page if not authenticated
-    navigate('/auth', { state: { from: '/pricing' } });
-    return;
-  }
-
-  // Get the current user details from Supabase
-  const fetchUserDetails = async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser(authToken);
-      if (error) throw error;
-      
-      // Now you have the user's ID
-      const userId = user.id;
-      
-      // Open Paddle checkout with the customer ID
-      paddle.Checkout.open({
-        items: [
-          {
-            priceId: priceId,
-            quantity: 1,
-          },
-        ],
-        customer: {
-          id: userId, // Supabase User ID
-        },
-        passthrough: JSON.stringify({ supabaseUserId: userId }), // Pass custom user ID
-        settings: {
-          displayMode: "overlay",
-          theme: "dark",
-          successUrl: "https://xryptt.com/",
-        },
-      });
-    } catch (err) {
-      console.error("Failed to get user details:", err);
+  const handleCheckout = (priceId) => {
+    if (!paddle) {
+      console.error("Paddle not initialized");
+      return;
     }
+
+    // Check if user is authenticated by looking for auth token
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      // Redirect to auth page if not authenticated
+      navigate('/auth', { state: { from: '/pricing' } });
+      return;
+    }
+
+    // Get the current user details from Supabase
+    const fetchUserDetails = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(authToken);
+        if (error) throw error;
+        
+        // Now you have the user's ID
+        const userId = user.id;
+        
+        // Open Paddle checkout with the updated format
+        paddle.Checkout.open({
+          items: [
+            {
+              priceId: priceId,
+              quantity: 1,
+            },
+          ],
+          customer: {
+            // email: user.email, // Include user email if available
+            id: userId, // Use Supabase User ID as customer ID
+          },
+          customData: {
+            supabaseUserId: userId // Store user ID in custom data
+          },
+          settings: {
+            displayMode: "overlay",
+            theme: "dark",
+            successUrl: "https://xryptt.com/",
+          },
+        });
+      } catch (err) {
+        console.error("Failed to get user details:", err);
+      }
+    };
+    
+    fetchUserDetails();
   };
-  
-  fetchUserDetails();
-};
 
   return (
     <div className="py-12 bg-gradient-to-b from-gray-50 to-white">
