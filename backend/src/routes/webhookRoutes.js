@@ -24,7 +24,7 @@ const PADDLE_LIVE_IPS = [
   '52.11.166.252',
   '34.212.5.7'
 ];
-const ENVIRONMENT = 'sandbox';
+const ENVIRONMENT = 'production';
 // Middleware to verify Paddle IP addresses
 const verifyPaddleIP = (req, res, next) => {
   console.log('Verifying Paddle IP address');

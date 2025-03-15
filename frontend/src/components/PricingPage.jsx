@@ -10,8 +10,8 @@ const PricingPage = () => {
 
   useEffect(() => {
     initializePaddle({
-      environment: "sandbox",
-      token: import.meta.env.VITE_PADDLE_SANDBOX_CLIENT_TOKEN,
+      environment: "production",
+      token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
     }).then((paddleInstance) => setPaddle(paddleInstance));
   }, []);
 
@@ -113,7 +113,7 @@ const PricingPage = () => {
             </div>
             <div className="px-8 py-5 mt-auto">
               <button 
-                onClick={() => handleCheckout("pri_01jp9rqdgmnkc6be7b9dvrz04e")}
+                onClick={() => handleCheckout("pri_01jnrexyz6v8dy126m9a9g3mfw")}
                 className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
               >
                 Get Started
@@ -159,7 +159,7 @@ const PricingPage = () => {
             </div>
             <div className="px-8 py-5 mt-auto">
               <button 
-                onClick={() => handleCheckout("pri_01jp9rvyj22xyps9vryb3egg30")}
+                onClick={() => handleCheckout("pri_01jnrffepknte5yy0ymn1xwd6s")}
                 className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
               >
                 Subscribe Now
@@ -202,7 +202,7 @@ const PricingPage = () => {
             </div>
             <div className="px-8 py-5 mt-auto">
               <button 
-                onClick={() => handleCheckout("pri_01jp9rx9hqyyc1brjte1s3zhv0")}
+                onClick={() => handleCheckout("pri_01jnrfmd82v596b1jytnm5bkm1")}
                 className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
               >
                 Get Protected
