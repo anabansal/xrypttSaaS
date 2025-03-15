@@ -47,13 +47,13 @@ const verifyPaddleIP = (req, res, next) => {
   
   next();
 };
-router.use('/paddle', express.json());
+//router.use('/paddle', express.json());
 
 // Express middleware to parse raw body for webhook verification
-//router.use('/paddle', express.raw({ type: 'application/json' }));
+router.use('/paddle', express.raw({ type: 'application/json' }));
 
 // Apply IP verification middleware
-//router.use('/paddle', verifyPaddleIP);
+router.use('/paddle', verifyPaddleIP);
 
 router.post('/paddle', async (req, res) => {
   console.log('Received Paddle webhook');
@@ -61,16 +61,16 @@ router.post('/paddle', async (req, res) => {
     //Get the signature from headers
     const signature = req.headers['paddle-signature'] || '';
     const rawRequestBody = req.body.toString();
-    const secretKey = process.env.WEBHOOK_SANDBOX_SECRET_KEY || '';
-    const eventData = req.body;
-    //let eventData;
-    // try {
-    //   // Verify signature and unmarshal data
-    //   eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
-    // } catch (verificationError) {
-    //   console.error('Webhook verification failed:', verificationError);
-    //   return res.status(401).json({ error: 'Invalid webhook signature' });
-    // }
+    const secretKey = process.env.WEBHOOK_SECRET_KEY || '';
+    //const eventData = req.body;
+    let eventData;
+    try {
+      // Verify signature and unmarshal data
+      eventData = await paddle.webhooks.unmarshal(rawRequestBody, secretKey, signature);
+    } catch (verificationError) {
+      console.error('Webhook verification failed:', verificationError);
+      return res.status(401).json({ error: 'Invalid webhook signature' });
+    }
    
 
     //Extract data from the verified webhook
