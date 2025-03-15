@@ -17,6 +17,7 @@ import TermsOfServicePage from './components/TermsOfServicePage';
 import { ThemeProvider } from './context/ThemeContext';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import Success from './components/PaymentSuccessPage';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -90,6 +91,7 @@ useEffect(() => {
               <Route path="/refund-policy" element={<RefundPolicyPage />} />
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
               <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+              <Route path="/success" element={<Success />} />
 
               {/* Protected Routes */}
               <Route

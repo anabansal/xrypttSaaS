@@ -56,7 +56,7 @@ const PricingPage = () => {
           settings: {
             displayMode: "overlay",
             theme: "dark",
-            successUrl: "https://xryptt.com/",
+            successUrl: "https://xryptt.com/success",
           },
         });
       } catch (err) {
