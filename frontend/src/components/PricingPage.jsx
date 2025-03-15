@@ -9,13 +9,10 @@ const PricingPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      initializePaddle({
-        environment: "production",
-        token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
-      }).then((paddleInstance) => setPaddle(paddleInstance))
-        .catch((err) => console.error("Paddle initialization error:", err));
-    }
+    initializePaddle({
+      environment: "production",
+      token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
+    }).then((paddleInstance) => setPaddle(paddleInstance));
   }, []);
 
   const handleCheckout = (priceId) => {

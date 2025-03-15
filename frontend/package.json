@@ -44,7 +44,7 @@
   "inlineCss": true,
   "include": [
     "/",
-    "/pricing",
+    
     "/about",
     "/refund-policy",
     "/privacy-policy",
