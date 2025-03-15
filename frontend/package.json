@@ -39,6 +39,7 @@
     "vite": "^5.0.0"
   },
   "reactSnap": {
+    "skipThirdPartyRequests": true,
     "source": "dist",
   "inlineCss": true,
   "include": [
