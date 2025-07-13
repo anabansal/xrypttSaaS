@@ -113,7 +113,7 @@ const PricingPage = () => {
             </div>
             <div className="px-8 py-5 mt-auto">
               <button 
-                onClick={() => handleCheckout("pri_01jnrexyz6v8dy126m9a9g3mfw")}
+                onClick={() => handleCheckout("pri_01jp9rqdgmnkc6be7b9dvrz04e")}
                 className="w-full py-3 px-4 rounded-xl text-black font-bold bg-white hover:bg-gray-100 transition-colors"
               >
                 Get Started
