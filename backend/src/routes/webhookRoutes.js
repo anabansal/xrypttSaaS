@@ -61,7 +61,8 @@ router.post('/paddle', async (req, res) => {
     //Get the signature from headers
     const signature = req.headers['paddle-signature'] || '';
     const rawRequestBody = req.body.toString();
-    const secretKey = process.env.WEBHOOK_SECRET_KEY || '';
+    const secretKey = process.env.WEBHOOK_SANDBOX_SECRET_KEY || '';
+    const eventData = req.body;
     //const eventData = req.body;
     // let eventData;
     // try {
