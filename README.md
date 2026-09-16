@@ -97,13 +97,28 @@ FRONTEND_URL=http://localhost:5173
 
 ```bash
 # backend (Express API on :3000)
-cd backend && node src/app.js
+cd backend && npm run dev     # auto-restarts on file changes (node --watch)
+# or: npm start               # plain node, no watch
 
 # frontend (Vite dev server on :5173)
 cd frontend && npm run dev
 ```
 
-> The backend's `npm run dev` script currently points at `vite` (a leftover from copying the frontend's `package.json`) — use `node src/app.js` directly, or install `nodemon` and run `npx nodemon src/app.js` for auto-reload, until that script is fixed.
+## Deployment (Render)
+
+This repo includes a [`render.yaml`](./render.yaml) Blueprint that provisions two services:
+
+- **`xryptt-backend`** — Node web service, root `backend/`, build `npm install`, start `npm start`
+- **`xryptt-frontend`** — static site, root `frontend/`, build `npm install && npm run build`, publish `dist/`, with SPA rewrite to `index.html`
+
+To deploy:
+
+1. In the [Render dashboard](https://dashboard.render.com), choose **New → Blueprint** and point it at this repo. Render will read `render.yaml` and create both services.
+2. Fill in the env vars marked `sync: false` in the dashboard (Supabase, Etherscan, Moralis, Infura, Paddle, Resend keys, etc.) — Render never reads secret values from the repo.
+3. Add a Redis instance (Render's Key Value service, or an external one like Upstash) and set `REDIS_URL` on the backend.
+4. Once both services are live, set `VITE_API_BASE_URL` on the frontend to the backend's `https://xryptt-backend.onrender.com`-style URL, and `FRONTEND_URL` on the backend to the frontend's URL (needed for CORS) — then redeploy.
+
+If you already have live services under different names (this product has previously been deployed on Render), either reuse those exact names when applying the Blueprint, or update `FRONTEND_URL`/CORS in `backend/src/app.js` and `VITE_API_BASE_URL` in the frontend env to match your real URLs — this Blueprint intentionally doesn't touch any existing deployment.
 
 ## Related projects
 

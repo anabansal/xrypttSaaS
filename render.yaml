@@ -1,0 +1,67 @@
+services:
+  # Express API (wallet tracking, auth, webhooks, ...)
+  - type: web
+    name: xryptt-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        sync: false # e.g. https://xryptt-frontend.onrender.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: REDIS_URL
+        sync: false # Render Key Value instance, or an external Redis (e.g. Upstash)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: INFURA_PROJECT_ID
+        sync: false
+      - key: ETHERSCAN_API_KEY
+        sync: false
+      - key: ETHERSCAN_API_KEY1
+        sync: false
+      - key: MORALIS_API_KEY_1
+        sync: false
+      - key: MORALIS_API_KEY_2
+        sync: false
+      - key: PADDLE_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: WEBHOOK_SANDBOX_SECRET_KEY
+        sync: false
+
+  # React/Vite static site
+  - type: web
+    name: xryptt-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false # the xryptt-backend URL above, once deployed
+      - key: VITE_FRONTEND_URL
+        sync: false # this site's own URL
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_PADDLE_SANDBOX_CLIENT_TOKEN
+        sync: false
+      - key: VITE_ETHERSCAN_API_KEY
+        sync: false
