@@ -40,7 +40,7 @@ app.set('trust proxy', 1);
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://www.xryptt.com', 'https://xryptt.com', 'https://xrypttsaas-1.onrender.com', 'https://xrypttsaas.onrender.com']
+    ? ['https://www.xryptt.com', 'https://xryptt.com', 'https://xrypttsaas-1.onrender.com', 'https://xrypttsaas.onrender.com', 'https://xryptt-frontend.onrender.com']
     : 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
