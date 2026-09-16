@@ -29,4 +29,6 @@ frontend/.env.local
 # Specific Vite files
 frontend/vite.config.js.timestamp-*
 
-backend/tempCodeRunnerFile.js
+**/tempCodeRunnerFile.js
+backend/dist/
+backend/build/
