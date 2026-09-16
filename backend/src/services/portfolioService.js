@@ -51,7 +51,7 @@ export async function fetchNativeBalance(address) {
     const apiKey = config.etherscan.apiKeys[0];
     
     const response = await axios.get(
-      `${config.etherscan.endpoint}?module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey}`
+      `${config.etherscan.endpoint}?chainid=${config.etherscan.chainIds.mainnet}&module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey}`
     );
     
     if (response.data.status !== "1") {

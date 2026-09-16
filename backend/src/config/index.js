@@ -49,13 +49,17 @@ export function initializeConfig() {
           process.env.ETHERSCAN_API_KEY,
           process.env.ETHERSCAN_API_KEY1
         ],
-        endpoint: 'https://api.etherscan.io/api',
-        // Add additional networks if needed
-        networks: {
-          mainnet: 'https://api.etherscan.io/api',
-          goerli: 'https://api-goerli.etherscan.io/api',
-          sepolia: 'https://api-sepolia.etherscan.io/api',
-          polygon: 'https://api.polygonscan.com/api',
+        // Etherscan's V1 API (separate hostname per chain) was fully
+        // deprecated in 2025 and now always returns {status:"0",
+        // message:"NOTOK"}. V2 is one endpoint for every chain,
+        // selected via the `chainid` query param instead.
+        // https://docs.etherscan.io/v2-migration
+        endpoint: 'https://api.etherscan.io/v2/api',
+        chainIds: {
+          mainnet: 1,
+          goerli: 5,
+          sepolia: 11155111,
+          polygon: 137,
         }
       }
     };

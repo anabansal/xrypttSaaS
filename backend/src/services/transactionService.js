@@ -13,7 +13,8 @@ export async function checkTransactions(walletAddress, network = 'mainnet') {
         await initializeConfig();
 
         const etherscanApiKey = config.etherscan.apiKeys[0];
-        const endpoint = config.etherscan.networks[network] || config.etherscan.endpoint;
+        const endpoint = config.etherscan.endpoint;
+        const chainId = config.etherscan.chainIds[network] || config.etherscan.chainIds.mainnet;
 
         if (!etherscanApiKey) {
             throw new Error('Etherscan API key is not configured.');
@@ -29,6 +30,7 @@ export async function checkTransactions(walletAddress, network = 'mainnet') {
         }
 
         const params = {
+            chainid: chainId,
             module: 'account',
             action: 'txlist',
             address: walletAddress,
