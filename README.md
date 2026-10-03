@@ -6,9 +6,7 @@ Xryptt is a full-stack SaaS for tracking Ethereum wallets: portfolio balances, t
 
 ## Demo
 
-[![Xryptt demo — click to watch the full video with sound](media/demo.gif)](media/demo.mp4)
-
-▶️ [Watch the full 20-second video with sound](media/demo.mp4)
+https://github.com/user-attachments/assets/9ed3d74b-d9f8-4d32-92ea-02c1a31d83c9
 
 ## Features
 
