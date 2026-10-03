@@ -32,3 +32,6 @@ frontend/vite.config.js.timestamp-*
 **/tempCodeRunnerFile.js
 backend/dist/
 backend/build/
+
+# /brag video build workspace (final video lives in media/)
+brag-output/
